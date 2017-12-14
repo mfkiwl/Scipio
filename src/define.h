@@ -1,5 +1,11 @@
 `define REG_WIDTH  31:0
 
+`define R_TYPE     3'b000
+`define R_TYPE_OPCODE 7'b0110011
+
+`define ADD_FUNCT3 3'b0
+`define ADD_FUNCT7 7'b0000000
+
 `define POS_OPCODE 6:0
 `define POS_RD     11:7
 `define POS_FUNCT3 14:12
@@ -8,7 +14,6 @@
 `define POS_FUNCT7 31:25
 `define POS_IMM    31:20
 // todo: S/B/U/J type
-
 
 // ALU_OPCODE
 `define ALU_OPCODE_WIDTH 4:0
