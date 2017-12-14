@@ -1,3 +1,6 @@
-./src/define.h
-./src/alu.v
+./src/detail/alu.v
+./src/detail/reg_file.v
+
+
 ./test/alu_tb.v
+./test/reg_file_tb.v

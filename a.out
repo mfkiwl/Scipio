@@ -1,0 +1,200 @@
+#! /usr/local/Cellar/icarus-verilog/10.1.1/bin/vvp
+:ivl_version "10.1 (stable)" "(v10_1_1)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision + 0;
+:vpi_module "system";
+:vpi_module "vhdl_sys";
+:vpi_module "v2005_math";
+:vpi_module "va_math";
+S_0x7fda50705de0 .scope module, "reg_file_tb" "reg_file_tb" 2 1;
+ .timescale 0 0;
+v0x7fda50726f60_0 .var/i "i", 31 0;
+v0x7fda50727000_0 .var "regnum1", 4 0;
+v0x7fda507270a0_0 .var "regnum2", 4 0;
+v0x7fda50727150_0 .net "result1", 31 0, v0x7fda50726a60_0;  1 drivers
+v0x7fda50727200_0 .net "result2", 31 0, v0x7fda50726b20_0;  1 drivers
+v0x7fda507272d0_0 .var "rst", 0 0;
+v0x7fda50727380_0 .var "write_num", 4 0;
+v0x7fda50727430_0 .var "write_res", 31 0;
+S_0x7fda50709650 .scope module, "DUT" "reg_file" 2 13, 3 1 0, S_0x7fda50705de0;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "rst"
+    .port_info 1 /INPUT 5 "read_num1"
+    .port_info 2 /OUTPUT 32 "read_res1"
+    .port_info 3 /INPUT 5 "read_num2"
+    .port_info 4 /OUTPUT 32 "read_res2"
+    .port_info 5 /INPUT 5 "write_num"
+    .port_info 6 /INPUT 32 "write_res"
+v0x7fda507268f0_0 .net "read_num1", 4 0, v0x7fda50727000_0;  1 drivers
+v0x7fda507269b0_0 .net "read_num2", 4 0, v0x7fda507270a0_0;  1 drivers
+v0x7fda50726a60_0 .var "read_res1", 31 0;
+v0x7fda50726b20_0 .var "read_res2", 31 0;
+v0x7fda50726bd0 .array "regs", 1 31, 31 0;
+v0x7fda50726cb0_0 .net "rst", 0 0, v0x7fda507272d0_0;  1 drivers
+v0x7fda50726d50_0 .net "write_num", 4 0, v0x7fda50727380_0;  1 drivers
+v0x7fda50726e00_0 .net "write_res", 31 0, v0x7fda50727430_0;  1 drivers
+E_0x7fda50716dd0 .event edge, v0x7fda50726e00_0, v0x7fda50726d50_0;
+E_0x7fda5070ce60 .event edge, v0x7fda507269b0_0;
+E_0x7fda5070d2c0 .event edge, v0x7fda507268f0_0;
+E_0x7fda5070d4e0 .event posedge, v0x7fda50726cb0_0;
+S_0x7fda50700090 .scope task, "reset_regs" "reset_regs" 3 16, 3 16 0, S_0x7fda50709650;
+ .timescale 0 0;
+v0x7fda507001f0_0 .var/i "i", 31 0;
+TD_reg_file_tb.DUT.reset_regs ;
+    %pushi/vec4 1, 0, 32;
+    %store/vec4 v0x7fda507001f0_0, 0, 32;
+T_0.0 ;
+    %load/vec4 v0x7fda507001f0_0;
+    %cmpi/s 31, 0, 32;
+    %flag_or 5, 4;
+    %jmp/0xz T_0.1, 5;
+    %pushi/vec4 0, 0, 32;
+    %load/vec4 v0x7fda507001f0_0;
+    %subi 1, 0, 32;
+    %ix/vec4/s 4;
+    %store/vec4a v0x7fda50726bd0, 4, 0;
+    %load/vec4 v0x7fda507001f0_0;
+    %pushi/vec4 1, 0, 32;
+    %add;
+    %store/vec4 v0x7fda507001f0_0, 0, 32;
+    %jmp T_0.0;
+T_0.1 ;
+    %end;
+    .scope S_0x7fda50709650;
+T_1 ;
+    %wait E_0x7fda5070d4e0;
+    %fork TD_reg_file_tb.DUT.reset_regs, S_0x7fda50700090;
+    %join;
+    %jmp T_1;
+    .thread T_1;
+    .scope S_0x7fda50709650;
+T_2 ;
+    %wait E_0x7fda5070d2c0;
+    %load/vec4 v0x7fda507268f0_0;
+    %pad/u 32;
+    %cmpi/e 0, 0, 32;
+    %flag_mov 8, 4;
+    %jmp/0 T_2.0, 8;
+    %pushi/vec4 0, 0, 32;
+    %jmp/1 T_2.1, 8;
+T_2.0 ; End of true expr.
+    %load/vec4 v0x7fda507268f0_0;
+    %pad/u 7;
+    %subi 1, 0, 7;
+    %ix/vec4 4;
+    %load/vec4a v0x7fda50726bd0, 4;
+    %jmp/0 T_2.1, 8;
+ ; End of false expr.
+    %blend;
+T_2.1;
+    %assign/vec4 v0x7fda50726a60_0, 0;
+    %jmp T_2;
+    .thread T_2, $push;
+    .scope S_0x7fda50709650;
+T_3 ;
+    %wait E_0x7fda5070ce60;
+    %load/vec4 v0x7fda507269b0_0;
+    %pad/u 32;
+    %cmpi/e 0, 0, 32;
+    %flag_mov 8, 4;
+    %jmp/0 T_3.0, 8;
+    %pushi/vec4 0, 0, 32;
+    %jmp/1 T_3.1, 8;
+T_3.0 ; End of true expr.
+    %load/vec4 v0x7fda507269b0_0;
+    %pad/u 7;
+    %subi 1, 0, 7;
+    %ix/vec4 4;
+    %load/vec4a v0x7fda50726bd0, 4;
+    %jmp/0 T_3.1, 8;
+ ; End of false expr.
+    %blend;
+T_3.1;
+    %assign/vec4 v0x7fda50726b20_0, 0;
+    %jmp T_3;
+    .thread T_3, $push;
+    .scope S_0x7fda50709650;
+T_4 ;
+    %wait E_0x7fda50716dd0;
+    %load/vec4 v0x7fda50726e00_0;
+    %load/vec4 v0x7fda50726d50_0;
+    %pad/u 7;
+    %subi 1, 0, 7;
+    %ix/vec4 3;
+    %ix/load 4, 0, 0; Constant delay
+    %assign/vec4/a/d v0x7fda50726bd0, 0, 4;
+    %jmp T_4;
+    .thread T_4, $push;
+    .scope S_0x7fda50705de0;
+T_5 ;
+    %pushi/vec4 1, 0, 1;
+    %store/vec4 v0x7fda507272d0_0, 0, 1;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x7fda507272d0_0, 0, 1;
+    %delay 5, 0;
+    %vpi_call 2 28 "$display", "test: reset & read" {0 0 0};
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0x7fda50726f60_0, 0, 32;
+T_5.0 ;
+    %load/vec4 v0x7fda50726f60_0;
+    %cmpi/u 31, 0, 32;
+    %flag_or 5, 4;
+    %jmp/0xz T_5.1, 5;
+    %load/vec4 v0x7fda50726f60_0;
+    %pad/u 5;
+    %store/vec4 v0x7fda50727000_0, 0, 5;
+    %delay 1, 0;
+    %load/vec4 v0x7fda50727150_0;
+    %cmpi/ne 0, 0, 32;
+    %jmp/0xz  T_5.2, 6;
+    %vpi_call 2 33 "$display", "reset %d failed", v0x7fda50726f60_0 {0 0 0};
+T_5.2 ;
+    %load/vec4 v0x7fda50726f60_0;
+    %pushi/vec4 1, 0, 32;
+    %add;
+    %store/vec4 v0x7fda50726f60_0, 0, 32;
+    %jmp T_5.0;
+T_5.1 ;
+    %vpi_call 2 35 "$display", "finish: reset & read" {0 0 0};
+    %vpi_call 2 36 "$display", "test: write & read" {0 0 0};
+    %pushi/vec4 0, 0, 32;
+    %store/vec4 v0x7fda50726f60_0, 0, 32;
+T_5.4 ;
+    %load/vec4 v0x7fda50726f60_0;
+    %cmpi/u 31, 0, 32;
+    %flag_or 5, 4;
+    %jmp/0xz T_5.5, 5;
+    %load/vec4 v0x7fda50726f60_0;
+    %load/vec4 v0x7fda50726f60_0;
+    %concat/vec4; draw_concat_vec4
+    %pad/u 37;
+    %split/vec4 32;
+    %store/vec4 v0x7fda50727430_0, 0, 32;
+    %store/vec4 v0x7fda50727380_0, 0, 5;
+    %delay 1, 0;
+    %load/vec4 v0x7fda50726f60_0;
+    %pad/u 5;
+    %store/vec4 v0x7fda507270a0_0, 0, 5;
+    %delay 1, 0;
+    %load/vec4 v0x7fda50727200_0;
+    %load/vec4 v0x7fda50726f60_0;
+    %cmp/ne;
+    %jmp/0xz  T_5.6, 4;
+    %vpi_call 2 44 "$display", "reg[%d] != %d", v0x7fda50726f60_0, v0x7fda50726f60_0 {0 0 0};
+T_5.6 ;
+    %load/vec4 v0x7fda50726f60_0;
+    %pushi/vec4 1, 0, 32;
+    %add;
+    %store/vec4 v0x7fda50726f60_0, 0, 32;
+    %jmp T_5.4;
+T_5.5 ;
+    %vpi_call 2 46 "$display", "finish: write & read" {0 0 0};
+    %vpi_call 2 47 "$finish" {0 0 0};
+    %end;
+    .thread T_5;
+# The file index is used to find the file name in the following table.
+:file_names 4;
+    "N/A";
+    "<interactive>";
+    "./test/reg_file_tb.v";
+    "./src/detail/reg_file.v";

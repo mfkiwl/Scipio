@@ -1,4 +1,4 @@
-`include "../src/define.h"
+`include "define.h"
 
 module alu_tb ();
 
@@ -28,6 +28,7 @@ end
 initial begin
   @(negedge rst);
   @(negedge clk);
+  $display("test: alu");
   repeat(3) begin
     src1 = $urandom % 10;
     src2 = $urandom % 10;
@@ -37,6 +38,7 @@ initial begin
       $display("%d + %d != %d", src1, src2, res);
     end
   end
+  $display("finish: alu");
   $finish;
 end
 
