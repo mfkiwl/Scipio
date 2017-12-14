@@ -1,0 +1,3 @@
+./src/define.h
+./src/alu.v
+./test/alu_tb.v
