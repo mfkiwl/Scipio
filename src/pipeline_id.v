@@ -8,8 +8,8 @@ module pipeline_id (
 
   input [31:0] inst,
 
-  output wire[31:0] src1,
-  output wire[31:0] src2,
+  output reg[31:0] src1,
+  output reg[31:0] src2,
 
   output reg[`ALU_OPCODE_WIDTH] alu_opcode,
   output reg[4:0] dreg, // ??
@@ -37,13 +37,23 @@ module pipeline_id (
 
   task decode_rtype;
     begin
-      decoded_type <= `R_TYPE;
-      dreg   <= inst[`POS_RD];
+      decoded_type <= `R_TYPE; // DEBUG
+      dreg   <= inst[`POS_RD]; // ??
       sreg1  <= inst[`POS_RS1];
       sreg2  <= inst[`POS_RS2];
       if (inst[`POS_FUNCT3] == `ADD_FUNCT3
           && inst[`POS_FUNCT7] == `ADD_FUNCT7)
           alu_opcode <= `ALU_ADD;
+    end
+  endtask
+
+  task decode_itype;
+    begin
+      decoded_type <= `I_TYPE; // DEBUG
+      dreg <= inst[`POS_RD];
+      sreg1 <= inst[`POS_RS1];
+      src1  <= $signed(inst[`POS_IMM]);
+
     end
   endtask
 
