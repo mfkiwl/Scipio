@@ -20,7 +20,12 @@
 `define AND_FUNCT73  10'b0000000111
 
 // I
-`define ADDI_FUNCT3 3'b000
+`define ADDI_FUNCT3  3'b000
+`define SLTI_FUNCT3  3'b010
+`define SLTIU_FUNCT3 3'b011
+`define XORI_FUNCT3  3'b100
+`define ORI_FUNCT3   3'b110
+`define ANDI_FUNCT3  3'b111
 
 // decoding
 `define POS_OPCODE 6:0

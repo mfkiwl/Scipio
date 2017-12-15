@@ -11,7 +11,9 @@ module pipeline_id (
   output [`ALU_TYPE_WIDTH] alu_type,
   output [`REG_NUM]        rd,
   output [`COMMON_WIDTH]   src1,
-  output [`COMMON_WIDTH]   src2
+  output [`COMMON_WIDTH]   src2,
+  output                   imm_tag,
+  output [`COMMON_WIDTH]   imm
   );
 
   wire [`REG_NUM] decoder_out_rs[2:1];
@@ -23,7 +25,9 @@ module pipeline_id (
     .alu_type(alu_type),
     .rd(rd),
     .rs1(decoder_out_rs[1]),
-    .rs2(decoder_out_rs[2])
+    .rs2(decoder_out_rs[2]),
+    .extended_imm(imm),
+    .imm_tag(imm_tag)
     );
 
   id_reg_file reg_file(

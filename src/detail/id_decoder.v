@@ -1,6 +1,6 @@
 `include "define.h"
 
-// TODO: decode I/... type, output other types
+// TODO: decode S/... type, output other types
 
 module id_decoder (
   input rst,
@@ -8,6 +8,7 @@ module id_decoder (
   input [`COMMON_WIDTH] inst,
 
   output reg [`ALU_TYPE_WIDTH]   alu_type,
+  output reg                     imm_tag,
   output reg [`COMMON_WIDTH]     extended_imm,
   output reg [`REG_NUM]          rd,
   output reg [`REG_NUM]          rs1,
@@ -32,6 +33,7 @@ module id_decoder (
 
   task decode_rtype;
     begin
+      imm_tag <= 1'b0;
       rs1 <= inst[`POS_RS1];
       rs2 <= inst[`POS_RS2];
       rd  <= inst[`POS_RD];
@@ -51,9 +53,28 @@ module id_decoder (
     end
   endtask
 
+  task decode_itype;
+    begin
+      extended_imm <= $signed(inst[`POS_IMM]);
+      imm_tag <= 1'b1;
+      rs1 <= inst[`POS_RS1];
+      rd  <= inst[`POS_RD];
+      case (inst[`POS_FUNCT3])
+        `ADDI_FUNCT3:  alu_type <= `ALU_ADD;
+        `SLTI_FUNCT3:  alu_type <= `ALU_SLT;
+        `SLTIU_FUNCT3: alu_type <= `ALU_SLTU;
+        `XORI_FUNCT3:  alu_type <= `ALU_XOR;
+        `ORI_FUNCT3:   alu_type <= `ALU_OR;
+        `ANDI_FUNCT3:  alu_type <= `ALU_AND;
+        default: alu_type <= `ALU_NOP;
+      endcase
+    end
+  endtask
+
   always @ ( * ) begin
     case (inst[`POS_OPCODE])
       `R_TYPE_OPCODE: decode_rtype;
+      `I_TYPE_OPCODE: decode_itype;
       default:;
     endcase
   end
