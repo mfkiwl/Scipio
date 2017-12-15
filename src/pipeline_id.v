@@ -1,3 +1,5 @@
+`include "define.h"
+
 module pipeline_id (
   input clk,
   input rst,

@@ -1,6 +1,7 @@
 ./src/pipeline_reg_ifid.v
 ./src/pipeline_id.v
 ./src/detail/id_decoder.v
+./src/detail/id_reg_file.v
 
 ./test/pipeline_reg_ifid_tb.v
 

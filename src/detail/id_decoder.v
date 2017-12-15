@@ -1,6 +1,6 @@
 `include "define.h"
 
-// TODO: decode I/... type
+// TODO: decode I/... type, output other types
 
 module id_decoder (
   input rst,
