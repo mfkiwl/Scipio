@@ -1,11 +1,7 @@
-./src/detail/alu.v
-./src/detail/reg_file.v
+./src/pipeline_reg_ifid.v
 ./src/pipeline_id.v
-./src/pipeline_ex.v
-./src/cpu_core.v
+./src/detail/id_decoder.v
 
-./test/alu_tb.v
-./test/reg_file_tb.v
-./test/pipeline_id_tb.v
-./test/pipeline_ex_tb.v
-./test/cpu_core_tb.v
+./test/pipeline_reg_ifid_tb.v
+
+./test/detail/id_decoder_tb.v

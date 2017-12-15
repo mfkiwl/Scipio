@@ -1,22 +1,23 @@
 /////////////////////////
 //////////DEBUG//////////
 `define R_TYPE 3'b000
-`define I_TYPE 3'b001     
+`define I_TYPE 3'b001
 /////////////////////////
 
 `define R_TYPE_OPCODE 7'b0110011
 `define I_TYPE_OPCODE 7'b0010011
 
 // R
-`define ADD_FUNCT3  3'b000
-`define ADD_FUNCT7  7'b0000000
-`define ADD_FUNCT73 10'b0000000000
-`define SUB_FUNCT3  3'b000
-`define SUB_FUNCT7  3'b0100000
-`define SUB_FUNCT73 10'b0100000000
-`define SLL_FUNCT3  3'b001
-`define SLL_FUNCT7  7'b0000000
-`define SLL_FUNCT73 10'b0000000001
+`define ADD_FUNCT73  10'b0000000000
+`define SUB_FUNCT73  10'b0100000000
+`define SLL_FUNCT73  10'b0000000001
+`define SLT_FUNCT73  10'b0000000010
+`define SLTU_FUNCT73 10'b0000000011
+`define XOR_FUNCT73  10'b0000000100
+`define SRL_FUNCT73  10'b0000000101
+`define SRA_FUNCT73  10'b0100000101
+`define OR_FUNCT73   10'b0000000110
+`define AND_FUNCT73  10'b0000000111
 
 // I
 `define ADDI_FUNCT3 3'b000
