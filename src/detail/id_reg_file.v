@@ -11,8 +11,8 @@ module id_reg_file (
   input wire [`REG_NUM]       rs2,
   output reg [`COMMON_WIDTH]  src2,
 
-  input [`REG_NUM]        rd,
-  input [`COMMON_WIDTH]   data
+  input [`REG_NUM]        reg_write,
+  input [`COMMON_WIDTH]   data_write
   );
 
   reg [`COMMON_WIDTH] regs[31:1];
@@ -24,9 +24,14 @@ module id_reg_file (
   end
 
   // write
-  always @ ( * ) begin
-    if (rd !== 0)
-      regs[rd] <= data;
+  always @ (reg_write or data_write) begin
+    if (reg_write !== 0) begin
+      regs[reg_write] <= data_write;
+      if (reg_write == rs1)
+        src1 <= data_write;
+      if (reg_write == rs2)
+        src2 <= data_write;
+    end
   end
 
   // read

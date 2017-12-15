@@ -4,5 +4,5 @@
 ./src/detail/id_reg_file.v
 
 ./test/pipeline_reg_ifid_tb.v
-
+./test/pipeline_id_tb.v
 ./test/detail/id_decoder_tb.v

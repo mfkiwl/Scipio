@@ -1,3 +1,5 @@
+// TODO: rewrite (clock added)
+
 module pipeline_reg_ifid_tb;
   reg clk;
   reg rst;
