@@ -13,8 +13,6 @@ module pipeline_ex (
   output [31:0] wb_data
   );
 
-  wire [31:0] alu_result;
-
   alu ALU(
     .rst(rst),
     .clk(clk),

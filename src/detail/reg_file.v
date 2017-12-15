@@ -18,6 +18,7 @@ module reg_file (
     begin
       for (i = 1; i <= 31; i++) begin
         regs[i] = 32'b0;
+        // regs[i] = i; // DEBUG
       end
     end
   endtask

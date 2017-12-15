@@ -27,7 +27,7 @@ module reg_file_tb ();
     #5;
     $display("test: reset & read");
     for (i = 0; i <= 31; i++) begin
-      regnum1 = i;
+      regnum1 = i; // DEBUG
       #1;
       // $display("reseting %d", i);
       if (result1 !== 0) $display("reset %d failed", i);

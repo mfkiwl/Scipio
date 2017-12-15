@@ -7,13 +7,17 @@ module pipeline_id_tb ();
   reg [31:0] inst;
   wire [2:0] decode_res;
   wire [`ALU_OPCODE_WIDTH] alu_opcode;
+  wire [31:0] src1;
+  wire [31:0] src2;
 
   pipeline_id DUT(
     .clk(clk),
     .rst(rst),
     .inst(inst),
     .decoded_type(decode_res),
-    .alu_opcode(alu_opcode)
+    .alu_opcode(alu_opcode),
+    .src1(src1),
+    .src2(src2)
     );
 
 // clock
@@ -34,6 +38,8 @@ initial begin
   inst[`POS_FUNCT7] = `ADD_FUNCT7;
   @(posedge clk);
   #5;
+  $display("reg1 = %d, reg2 = %d", inst[`POS_RS1], inst[`POS_RS2]);
+  $display("src1 = %d, src2 = %d", src1, src2);
   if (alu_opcode != `ALU_ADD)
     $display("%d != %d (ans)", alu_opcode, `ALU_ADD);
   $display("finish: id");

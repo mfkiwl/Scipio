@@ -12,9 +12,9 @@ module pipeline_id (
   output wire[31:0] src2,
 
   output reg[`ALU_OPCODE_WIDTH] alu_opcode,
-  output reg[4:0] dreg,
+  output reg[4:0] dreg, // ??
 
-  // debug
+  // DEBUG
   output reg[2:0] decoded_type
   );
 
@@ -22,7 +22,7 @@ module pipeline_id (
   reg [4:0] sreg2;
 
   reg_file regs(
-    // .rst(rst),
+    .rst(rst),
     .read_num1(sreg1),
     .read_num2(sreg2),
     .read_res1(src1),
