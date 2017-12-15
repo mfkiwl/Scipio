@@ -1,7 +1,12 @@
+./src/cpu_core.v
+
 ./src/pipeline_reg_ifid.v
+
 ./src/pipeline_id.v
 ./src/detail/id_decoder.v
 ./src/detail/id_reg_file.v
+
+./src/pipeline_reg_idex.v
 
 ./test/pipeline_reg_ifid_tb.v
 ./test/pipeline_id_tb.v
