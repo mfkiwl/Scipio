@@ -1,18 +1,8 @@
 `include "define.h"
 
-`define PERIOD 100;
-
 module idexmemwb_ri_tb;
   reg clk;
   reg rst;
-  // clock
-  initial begin
-    clk = 1'b0;
-    rst = 1'b1;
-    repeat(4) #`PERIOD clk = ~clk;
-    rst = 1'b0;
-    forever #`PERIOD clk = ~clk;
-  end
 
   // .in
   reg  [`COMMON_WIDTH] inst;
@@ -81,6 +71,7 @@ module idexmemwb_ri_tb;
       .src2(id_out_src2),
       .imm_tag(id_out_imm_tag),
       .imm(id_out_imm),
+      .write_alu_result_tag_in(id_out_write_alu_result_tag),
 
       // output
       .alu_type(idex_out_alu_type),
@@ -119,7 +110,7 @@ module idexmemwb_ri_tb;
       .write_alu_result_tag_in(idex_out_write_alu_result_tag),
 
       // output
-      .result(exmem_out_result),
+      .result(exmem_out_result), // to ex/mem too
       // to ex/mem
       .reg_write(exmem_out_reg_write),
       .write_alu_result_tag(exmem_out_write_alu_result_tag)
@@ -131,23 +122,59 @@ module idexmemwb_ri_tb;
       .clk(clk),
 
       // input
-      .mem_result(exmem_out_result),
+      .reg_write_in(exmem_out_reg_write),
       .alu_result(exmem_out_result),
-      .write_alu_result_tag(exmem_out_write_alu_result_tag)
+      .write_alu_result_tag(exmem_out_write_alu_result_tag),
+
+      // output
+      .reg_write(memwb_out_reg_write),
+      .data_write(memwb_out_data_write)
       );
   //////////////////////////////////////
 
+  // clock
+  initial begin
+    clk = 1'b0;
+    rst = 1'b1;
+    repeat(4) #100 clk = ~clk;
+    rst = 1'b0;
+    forever #100 clk = ~clk;
+  end
+
+  task print_regs;
+    integer i;
+    begin
+      for (i = 1; i < 32; i = i + 1) begin
+        if (id.reg_file.regs[i] !== 0)
+          $display("reg[%d] = %d", i, id.reg_file.regs[i]);
+      end
+    end
+  endtask
+
   // test
   initial begin
+    $display("test: idexmemwb_ri");
     @(negedge rst);
-    // x1 <= x0 + 3; (ADDI)
+    $display("x1 <= x0 + 3; (ADDI)");
+    inst = 32'b00000000001100000000000010010011;
+    repeat(5) @(posedge clk);
+    print_regs;
+
+    $display("x2 <= x1 + x1 (ADD)");
+    inst = 32'b00000000000100001000000100110011;
+    repeat(5) @(posedge clk);
+    print_regs;
+
+    $display("x1 <= x0 + 3; (ADDI) & ");
+    $display("x3 <= x2 + x2 (ADD)");
     inst = 32'b00000000001100000000000010010011;
     @(posedge clk);
-    @(posedge clk);
-    @(posedge clk);
-    @(posedge clk);
+    inst = 32'b00000000001000010000000110110011;
+    repeat(5) @(posedge clk);
+    print_regs;
 
-
+    $display("finish: idexmemwb_ri");
+    $finish;
   end
 
 endmodule // idexmemwb_ri_tb

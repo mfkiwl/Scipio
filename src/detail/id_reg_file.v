@@ -24,7 +24,7 @@ module id_reg_file (
   end
 
   // write
-  always @ (reg_write or data_write) begin
+  always @ ( * ) begin
     if (reg_write !== 0) begin
       regs[reg_write] <= data_write;
       if (reg_write == rs1)
@@ -36,8 +36,8 @@ module id_reg_file (
 
   // read
   always @ ( * ) begin
-    src1 = (rs1 == 0) ? 0 : regs[rs1];
-    src2 = (rs2 == 0) ? 0 : regs[rs2];
+    src1 <= (rs1 == 0) ? 0 : regs[rs1];
+    src2 <= (rs2 == 0) ? 0 : regs[rs2];
   end
 
 endmodule // id_reg_file

@@ -15,6 +15,7 @@ module pipeline_reg_exmem (
   );
 
   always @ (posedge clk) begin
+    // $display("exmem: tag = %d", write_alu_result_tag_in);
     reg_write <= rd;
     result    <= result_in;
     write_alu_result_tag <= write_alu_result_tag_in;
