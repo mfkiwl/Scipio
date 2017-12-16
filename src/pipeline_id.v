@@ -1,7 +1,10 @@
 `include "define.h"
 
+// the decoder should complete its task in the
+// first half period
 module pipeline_id (
   input rst,
+  input clk, // only used to synchronize reg_file
 
   input [`COMMON_WIDTH] inst,
 
@@ -33,6 +36,7 @@ module pipeline_id (
     );
 
   id_reg_file reg_file(
+    .clk(clk),
     .rst(rst),
 
     .rs1(decoder_out_rs[1]),

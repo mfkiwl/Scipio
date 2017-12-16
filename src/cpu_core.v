@@ -12,8 +12,6 @@ module cpu_core (
 
   wire [`COMMON_WIDTH] ifid_out_inst;
 
-  wire [`COMMON_WIDTH] ifid_out_inst;
-
   pipeline_reg_ifid ifid(
     .rst(rst),
     .clk(clk),
