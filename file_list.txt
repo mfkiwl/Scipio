@@ -8,6 +8,15 @@
 
 ./src/pipeline_reg_idex.v
 
+./src/pipeline_ex.v
+./src/detail/ex_alu.v
+
+./src/pipeline_reg_exmem.v
+
+./src/pipeline_reg_memwb.v
+
 ./test/pipeline_reg_ifid_tb.v
 ./test/pipeline_id_tb.v
 ./test/detail/id_decoder_tb.v
+
+./test/comprehensive/idexmemwb_ri_tb.v

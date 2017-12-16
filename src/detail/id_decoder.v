@@ -8,6 +8,7 @@ module id_decoder (
   input [`COMMON_WIDTH] inst,
 
   output reg [`ALU_TYPE_WIDTH]   alu_type,
+  output reg                     write_alu_result_tag,
   output reg                     imm_tag,
   output reg [`COMMON_WIDTH]     extended_imm,
   output reg [`REG_NUM]          rd,
@@ -16,6 +17,8 @@ module id_decoder (
   );
 
   always @(posedge rst) begin
+    write_alu_result_tag <= 0;
+    imm_tag <= 0;
     alu_type <= 0;
     extended_imm <= 0;
     rd  <= 0;
@@ -33,6 +36,7 @@ module id_decoder (
 
   task decode_rtype;
     begin
+      write_alu_result_tag <= 1'b1;
       imm_tag <= 1'b0;
       rs1 <= inst[`POS_RS1];
       rs2 <= inst[`POS_RS2];
@@ -56,6 +60,7 @@ module id_decoder (
   task decode_itype;
     begin
       extended_imm <= $signed(inst[`POS_IMM]);
+      write_alu_result_tag <= 1'b1;
       imm_tag <= 1'b1;
       rs1 <= inst[`POS_RS1];
       rd  <= inst[`POS_RD];

@@ -11,14 +11,16 @@ module pipeline_reg_idex (
   input [`COMMON_WIDTH]   src2,
   input                   imm_tag,
   input [`COMMON_WIDTH]   imm,
+  input                   write_alu_result_tag_in,
 
   // to ex
   output reg [`ALU_TYPE_WIDTH] alu_type,
   output reg [`COMMON_WIDTH]   src1,
   output reg [`COMMON_WIDTH]   src2_imm,
 
-  // to ???
-  output reg [`REG_NUM]   rd
+  // to ex/men
+  output reg [`REG_NUM]   rd,
+  output reg              write_alu_result_tag
   );
 
   // reset
@@ -33,6 +35,7 @@ module pipeline_reg_idex (
     alu_type <= alu_type_in;
     src1     <= src1_in;
     rd       <= rd_in;
+    write_alu_result_tag <= write_alu_result_tag_in;
     if (imm_tag)
       src2_imm <= imm;
     else

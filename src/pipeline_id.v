@@ -9,6 +9,7 @@ module pipeline_id (
   input [`COMMON_WIDTH] data_write,
 
   output [`ALU_TYPE_WIDTH] alu_type,
+  output                   write_alu_result_tag,
   output [`REG_NUM]        rd,
   output [`COMMON_WIDTH]   src1,
   output [`COMMON_WIDTH]   src2,
@@ -27,7 +28,8 @@ module pipeline_id (
     .rs1(decoder_out_rs[1]),
     .rs2(decoder_out_rs[2]),
     .extended_imm(imm),
-    .imm_tag(imm_tag)
+    .imm_tag(imm_tag),
+    .write_alu_result_tag(write_alu_result_tag)
     );
 
   id_reg_file reg_file(
