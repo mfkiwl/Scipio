@@ -9,19 +9,20 @@ module id_reg_file (
   input rst,
   input clk, // just the negedge is used
 
+  // from decoder
   input wire [`REG_NUM]        rs1,
-  output reg [`COMMON_WIDTH]   src1,
-  output reg                   modi1,
-
   input wire [`REG_NUM]        rs2,
-  output reg [`COMMON_WIDTH]   src2,
-  output reg                   modi2,
+  input wire [`REG_NUM]        rd,
 
-  input wire [`REG_NUM]       rd,
-
-  // write back
+  // from wb
   input [`REG_NUM]        reg_write,
-  input [`COMMON_WIDTH]   data_write
+  input [`COMMON_WIDTH]   data_write,
+
+  // to id/ex
+  output reg [`COMMON_WIDTH]   src1,
+  output reg [`COMMON_WIDTH]   src2,
+  output reg                   modi1,
+  output reg                   modi2
   );
 
   reg [`COMMON_WIDTH]   regs[31:1];

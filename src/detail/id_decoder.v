@@ -7,10 +7,14 @@ module id_decoder (
 
   input [`COMMON_WIDTH] inst,
 
-  output reg [`ALU_TYPE_WIDTH]   alu_type,
+  // to id/ex
   output reg                     write_alu_result_tag,
-  output reg                     imm_tag,
+  output reg [`ALU_TYPE_WIDTH]   alu_type,
+  output reg [2:0]               src_tag,
   output reg [`COMMON_WIDTH]     extended_imm,
+  output reg [`REG_NUM]          reg_write_out,
+
+  // to id_reg_file
   output reg [`REG_NUM]          rd,
   output reg [`REG_NUM]          rs1,
   output reg [`REG_NUM]          rs2
@@ -18,9 +22,11 @@ module id_decoder (
 
   always @(posedge rst) begin
     write_alu_result_tag <= 0;
-    imm_tag <= 0;
     alu_type <= 0;
+    src_tag <= 0;
     extended_imm <= 0;
+    reg_write_out <= 0;
+
     rd  <= 0;
     rs1 <= 0;
     rs2 <= 0;
@@ -36,11 +42,12 @@ module id_decoder (
 
   task decode_rtype;
     begin
+      src_tag <= 3'b110;
       write_alu_result_tag <= 1'b1;
-      imm_tag <= 1'b0;
       rs1 <= inst[`POS_RS1];
       rs2 <= inst[`POS_RS2];
       rd  <= inst[`POS_RD];
+      reg_write_out <= inst[`POS_RD];
       case (merge_funct73(inst[`POS_FUNCT7], inst[`POS_FUNCT3]))
         `ADD_FUNCT73:  alu_type <= `ALU_ADD;
         `SUB_FUNCT73:  alu_type <= `ALU_SUB;
@@ -59,11 +66,12 @@ module id_decoder (
 
   task decode_itype;
     begin
+      src_tag <= 3'b011;
       extended_imm <= $signed(inst[`POS_IMM]);
       write_alu_result_tag <= 1'b1;
-      imm_tag <= 1'b1;
       rs1 <= inst[`POS_RS1];
       rd  <= inst[`POS_RD];
+      reg_write_out <= inst[`POS_RD];
       case (inst[`POS_FUNCT3])
         `ADDI_FUNCT3:  alu_type <= `ALU_ADD;
         `SLTI_FUNCT3:  alu_type <= `ALU_SLT;

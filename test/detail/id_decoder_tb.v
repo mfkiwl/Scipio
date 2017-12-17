@@ -1,3 +1,4 @@
+/*
 `include "define.h"
 
 module id_decoder_tb;
@@ -48,3 +49,4 @@ module id_decoder_tb;
 
 
 endmodule // id_decoder_tb
+*/

@@ -1,3 +1,4 @@
+/*
 `include "define.h"
 
 module pipeline_id_tb;
@@ -65,3 +66,4 @@ module pipeline_id_tb;
 
 
 endmodule // pipeline_id_tb
+*/

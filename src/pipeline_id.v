@@ -6,46 +6,65 @@ module pipeline_id (
   input rst,
   input clk, // only used to synchronize reg_file
 
+  // from if/id
   input [`COMMON_WIDTH] inst,
 
+  // from wb
   input [`REG_NUM]      reg_write,
   input [`COMMON_WIDTH] data_write,
 
-  output [`ALU_TYPE_WIDTH] alu_type,
+  // decoder to id/ex
   output                   write_alu_result_tag,
-  output [`REG_NUM]        rd,
+  output [`ALU_TYPE_WIDTH] alu_type,
+  output [2:0]             src_tag,
+  output [`COMMON_WIDTH]   imm,
+  output [`REG_NUM]        reg_write_out,
+
+  // reg_file to id/ex
+  output                   modi1,
   output [`COMMON_WIDTH]   src1,
-  output [`COMMON_WIDTH]   src2,
-  output                   imm_tag,
-  output [`COMMON_WIDTH]   imm
+  output                   modi2,
+  output [`COMMON_WIDTH]   src2
   );
 
   wire [`REG_NUM] decoder_out_rs[2:1];
+  wire [`REG_NUM] decoder_out_rd;
 
   id_decoder decoder(
     .rst(rst),
     .inst(inst),
 
+    // to id/ex
+    .write_alu_result_tag(write_alu_result_tag),
     .alu_type(alu_type),
-    .rd(rd),
-    .rs1(decoder_out_rs[1]),
-    .rs2(decoder_out_rs[2]),
+    .src_tag(src_tag),
     .extended_imm(imm),
-    .imm_tag(imm_tag),
-    .write_alu_result_tag(write_alu_result_tag)
+    .reg_write_out(reg_write_out),
+
+    // to reg_file
+    .rd(decoder_out_rd),
+    .rs1(decoder_out_rs[1]),
+    .rs2(decoder_out_rs[2])
     );
 
   id_reg_file reg_file(
     .clk(clk),
     .rst(rst),
 
+    // from decoder
     .rs1(decoder_out_rs[1]),
-    .src1(src1),
     .rs2(decoder_out_rs[2]),
-    .src2(src2),
+    .rd(decoder_out_rd),
 
+    // from wb
     .reg_write(reg_write),
-    .data_write(data_write)
+    .data_write(data_write),
+
+    // to id/ex
+    .src1(src1),
+    .src2(src2),
+    .modi1(modi1),
+    .modi2(modi2)
   );
 
 endmodule // pipeline_id

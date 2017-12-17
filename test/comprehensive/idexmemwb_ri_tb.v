@@ -1,3 +1,4 @@
+/*
 `include "define.h"
 
 module idexmemwb_ri_tb;
@@ -38,6 +39,7 @@ module idexmemwb_ri_tb;
 
     pipeline_id id(
       .rst(rst),
+      .clk(clk),
 
       // input
       .inst(ifid_out_inst),
@@ -178,3 +180,4 @@ module idexmemwb_ri_tb;
   end
 
 endmodule // idexmemwb_ri_tb
+*/
