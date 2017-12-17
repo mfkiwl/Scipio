@@ -1,23 +1,4 @@
-./src/cpu_core.v
-
-./src/pipeline_reg_ifid.v
-
-./src/pipeline_id.v
 ./src/detail/id_decoder.v
 ./src/detail/id_reg_file.v
 
-./src/pipeline_reg_idex.v
-
-./src/pipeline_ex.v
-./src/detail/ex_alu.v
-
-./src/pipeline_reg_exmem.v
-
-./src/pipeline_reg_memwb.v
-
-./test/pipeline_reg_ifid_tb.v
-./test/pipeline_id_tb.v
-./test/detail/id_decoder_tb.v
-./test/detail/id_reg_file_tb.v
-
-./test/comprehensive/idexmemwb_ri_tb.v
+./src/pipeline_id.v
