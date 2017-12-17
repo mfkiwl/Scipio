@@ -1,4 +1,0 @@
-./src/detail/id_decoder.v
-./src/detail/id_reg_file.v
-
-./src/pipeline_id.v
