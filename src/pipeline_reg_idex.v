@@ -46,18 +46,19 @@ module pipeline_reg_idex (
   end
 
   always @ (posedge clk) begin
-    // to ex
-    alu_type <= alu_type_in;
-    src1     <= src1_in;
-    src2     <= src_tag[0] ? imm_in : src2_in;
-
-    // to ex/mem
-    reg_write <= reg_write_in;
-    write_alu_result_tag <= write_alu_result_tag_in;
-
     if ((src_tag[1] && modi1_in) || (src_tag[2] && modi2_in)) begin
       reset;
       block <= 1'b1;
+    end else begin
+      block <= 1'b0;
+      // to ex
+      alu_type <= alu_type_in;
+      src1     <= src1_in;
+      src2     <= src_tag[0] ? imm_in : src2_in;
+
+      // to ex/mem
+      reg_write <= reg_write_in;
+      write_alu_result_tag <= write_alu_result_tag_in;
     end
   end
 
