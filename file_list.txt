@@ -1,6 +1,8 @@
+./src/detail/pc_pc_reg.v
 ./src/detail/id_reg_file.v
 ./src/detail/id_decoder.v
 
+./src/pipeline_reg_ifid.v
 ./src/pipeline_id.v
 
 ./test/detail/id_reg_file_tb.v

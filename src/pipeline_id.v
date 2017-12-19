@@ -7,6 +7,8 @@ module pipeline_id (
   input [`COMMON_WIDTH] inst,
 
   // from forwarding
+  input                    ce_forward_ex,
+  input                    ce_forward_mem,
   input [`REG_NUM_WIDTH]   reg_forward_ex,
   input [`REG_NUM_WIDTH]   reg_forward_mem,
   input [`COMMON_WIDTH]    data_forward_ex,
@@ -42,26 +44,21 @@ module pipeline_id (
     .rs2(decoder_out_rs[2])
     );
 
-  reg tag_forward_ex;
-  reg tag_forward_mem;
   reg [`REG_NUM_WIDTH] reg_write;
   reg [`COMMON_WIDTH]  data_write;
 
   // forwarding
-  // triggers
-  always @ (reg_forward_ex  or data_forward_ex)  tag_forward_ex  = 1;
-  always @ (reg_forward_mem or data_forward_mem) tag_forward_mem = 1;
-
-  always @ (tag_forward_ex or tag_forward_mem) begin
-      if (tag_forward_ex) begin
+  always @ ( * ) begin
+    if (!rst) begin
+      if (ce_forward_ex) begin
         reg_write  <= reg_forward_ex;
         data_write <= data_forward_ex;
-        tag_forward_ex <= 0;
-      end else if (tag_forward_mem) begin
+      end
+      if (ce_forward_mem & (!ce_forward_ex || reg_forward_ex !== reg_forward_mem)) begin
         reg_write  <= reg_forward_mem;
         data_write <= data_forward_mem;
-        tag_forward_mem <= 0;
       end
+    end
   end
 
   id_reg_file reg_file(
