@@ -11,16 +11,17 @@ module pc_reg (
   );
 
   reg [`COMMON_WIDTH] pc;
+  always @ ( * ) pc = next_pc;
 
   always @ (posedge clk or posedge rst) begin
-    if (stall == 0) begin
+    if (stall != 0) begin
+      ;
+    end else begin
       if (rst) begin
-        inst <= 0;
-        pc_addr <= 0;
+        pc_addr <= -4;
         pc <= 0;
       end else begin
         pc_addr <= pc;
-        pc <= next_pc;
       end
     end
   end

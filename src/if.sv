@@ -8,14 +8,13 @@ module pif (
   input                 jump_ce,
   input [`COMMON_WIDTH] jump_pc,
 
-  output [`COMMON_WIDTH] inst,
-  output [`COMMON_WIDTH] pc_addr
+  ifid_inf.out to_idif
   );
 
   wire [`COMMON_WIDTH] mux_out_next_pc;
   wire [`COMMON_WIDTH] pc_out_pc_addr;
   wire [`COMMON_WIDTH] pc_addr_plus4 = pc_out_pc_addr + 4;
-  assign pc_addr = pc_out_pc_addr;
+  assign to_idif.pc_addr = pc_out_pc_addr;
 
   pc_reg pc(
     .stall(stall),
@@ -34,6 +33,10 @@ module pif (
     .out(mux_out_next_pc)
     );
 
-  // TODO: inst rom
+  inst_rom rom(
+    .rst(rst),
+    .addr(pc_out_pc_addr),
+    .inst(to_idif.inst)
+    );
 
 endmodule : pif

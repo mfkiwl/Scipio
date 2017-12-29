@@ -21,7 +21,6 @@ module ifid (
       to_id.inst    <= 0;
       to_id.pc_addr <= 0;
     end else begin
-      $display("ifid: %h", from_if.inst);
       to_id.inst <= from_if.inst;
       to_id.pc_addr <= from_if.pc_addr;
     end
