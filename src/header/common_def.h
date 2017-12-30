@@ -20,4 +20,7 @@
 `define TAG_INVALID     4'b1111
 `define RES_ADDR_WIDTH  31:0
 
+
+`define ROB_ENTRY_NUM   8
 `define RES_ENTRY_NUM   8
+`define RES_ENTRY_NUM_WIDTH 2:0
