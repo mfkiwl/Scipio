@@ -4,6 +4,8 @@
 `define AUIPC_OPCPDE  7'b0010111
 `define JAL_OPCODE    7'b1101111
 `define JALR_OPCODE   7'b1100111
+`define LOAD_OPCODE   7'b0000011
+`define STORE_OPCODE  7'b0100011
 
 // R
 `define ADD_FUNCT73  10'b0000000000
@@ -27,8 +29,12 @@
 `define SLLI_FUNCT3  3'b001
 `define SRLAI_FUNCT3 3'b101
 
-// J
+// SW
+`define BYTE_FUNCT3  3'b000
+`define HALF_FUNCT3  3'b001
+`define WORD_FUNCT3  3'b010
 
+// J
 
 // decoding
 `define POS_OPCODE 6:0
@@ -40,6 +46,6 @@
 `define POS_IMM    31:20
 `define POS_IMM_H  31:25
 `define POS_IMM_L  11:7
-`define POS_IMM_EX 31:12
+`define POS_IMM_UI 31:12
 `define POS_SHAMT  24:20
 // todo: S/B/U/J type

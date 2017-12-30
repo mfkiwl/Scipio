@@ -12,6 +12,8 @@ module ifid (
   input clk,
   input rst,
 
+  input stall,
+
   ifid_inf.in  from_if,
   ifid_inf.out to_id
   );
@@ -20,7 +22,7 @@ module ifid (
     if (rst) begin
       to_id.inst    <= 0;
       to_id.pc_addr <= 0;
-    end else begin
+    end else if (!stall) begin
       to_id.inst <= from_if.inst;
       to_id.pc_addr <= from_if.pc_addr;
     end

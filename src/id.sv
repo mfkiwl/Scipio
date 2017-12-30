@@ -6,8 +6,9 @@ module id (
   input rst_tag,
 
   // from IFID
-  input [`COMMON_WIDTH] inst,
-  input [`COMMON_WIDTH] pc_addr,
+  ifid_inf.in from_ifid,
+  // input [`COMMON_WIDTH] inst,
+  // input [`COMMON_WIDTH] pc_addr,
 
   // fomr wb
   input [`COMMON_WIDTH]   wd,
@@ -21,8 +22,10 @@ module id (
 
   output reg stall_if,
 
-  idex.out to_idex
+  idex_inf.out to_idex
   );
+
+  assign to_idex.target = target;
 
   /* wires:
    * ex_unit: [x]
@@ -35,32 +38,40 @@ module id (
 
   wire [`COMMON_WIDTH]  decoder_out_imm;
   wire                  decoder_out_imm_tag;
-  wire [`REG_NUM_WIDTH] decoder_out_ce [1:2];
+  wire                  decoder_out_pc_tag;
+  wire                  decoder_out_ce [1:2];
   wire [`REG_NUM_WIDTH] decoder_out_rs [1:2];
+  wire                  decoder_out_rd_ce;
   wire [`REG_NUM_WIDTH] decoder_out_rd;
 
   // stall
-  always @ ( * ) begin
-    if (rob_full || (reservation_full[to_idex.ex_unit])) begin
-      stall_if <= 1;
-      to_idex.target <= 0;
-    end else begin
-      stall_if <= 0;
-      to_idex.target <= target;
-    end
-  end
+  // always @ ( * ) begin
+  //   if (rob_full || (reservation_full[to_idex.ex_unit])) begin
+  //     stall_if <= 1;
+  //     to_idex.target <= 0;
+  //   end else begin
+  //     stall_if <= 0;
+  //     to_idex.target <= target;
+  //   end
+  // end
 
   decoder id_decoder(
+    .rst(rst),
+    .inst(from_ifid.inst),
+
     .ex_unit(to_idex.ex_unit),
     .op(to_idex.op),
     .ce(decoder_out_ce),
     .rd(decoder_out_rd),
+    .rd_ce(decoder_out_rd_ce),
     .rs(decoder_out_rs),
     .imm(decoder_out_imm),
-    .imm_tag(decoder_out_imm_tag)
+    .imm_tag(decoder_out_imm_tag),
+
+    .stall(stall_if)
     );
 
-  wire [`COMMON_WIDTH] reg_file_out_rs2;
+  wire [`COMMON_WIDTH] reg_file_out_rs[1:2];
 
   reg_file id_reg_file(
     .rst(rst),
@@ -76,16 +87,24 @@ module id (
     .ce(decoder_out_ce),
     .rs(decoder_out_rs),
     .rd(decoder_out_rd),
+    .rd_tag(target),
+    .rd_ce(decoder_out_rd_ce),
 
-    .tag(to_idex.tag),
-    .src('{to_idex.val[1], reg_file_out_rs2})
+    .src(reg_file_out_rs),
+    .tag(to_idex.tag)
     );
 
   mux #(`COMMON_LENGTH) imm_src(
     .in1(decoder_out_imm),
-    .in2(reg_file_out_rs2),
+    .in2(reg_file_out_rs[2]),
     .condition(decoder_out_imm_tag),
     .out(to_idex.val[2])
     );
 
+  mux #(`COMMON_LENGTH) pc_src(
+    .in1(from_ifid.pc_addr),
+    .in2(reg_file_out_rs[1]),
+    .condition(decoder_out_pc_tag),
+    .out(to_idex.val[1])
+    );
 endmodule // id

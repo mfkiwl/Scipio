@@ -8,16 +8,26 @@ module inst_rom (
   output reg [`COMMON_WIDTH] inst
   );
 
-  reg [`COMMON_WIDTH] inst_mem[0:31];
+  reg [`COMMON_WIDTH] inst_mem[31:0];
 
 
-  // $readmemh("/home/aaronren/Desktop/inst_rom.data", inst_mem);
-  always @ (posedge rst) begin
-    inst_mem[0] <= 32'h34011100;
-    inst_mem[1] <= 32'h34020020;
-    inst_mem[2] <= 32'h3403ff00;
-    inst_mem[3] <= 32'h3404ffff;
+  integer i;
+  initial begin
+    $readmemh("/home/aaronren/Desktop/code_gener/sample.data", inst_mem);
+    for (i = 0; i < 32; i = i + 1) begin
+      inst_mem[i][31:24] <= inst_mem[i][7:0];
+      inst_mem[i][23:16] <= inst_mem[i][15:8];
+      inst_mem[i][15:8]  <= inst_mem[i][23:16];
+      inst_mem[i][7:0]   <= inst_mem[i][31:24];
+    end
   end
+  // always @ (posedge rst) begin
+  //   inst_mem[0] <= 32'h34011100;
+  //   // inst_mem[1] <= 32'h34020020;
+  //   inst_mem[1] <= 32'b1101111; // JAL
+  //   inst_mem[2] <= 32'h3403ff00;
+  //   inst_mem[3] <= 32'h3404ffff;
+  // end
 
   always @( * ) begin
     if (!rst)

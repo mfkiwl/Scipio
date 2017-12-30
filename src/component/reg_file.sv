@@ -1,6 +1,6 @@
 `include "common_def.h"
 
-struct {
+typedef struct {
   reg [`COMMON_WIDTH]   data;
   reg [`INST_TAG_WIDTH] tag;
 } RegFileEntry;
@@ -18,6 +18,8 @@ module reg_file (
   // read
   input                    ce  [1:2], // whether src_i is needed
   input  [`REG_NUM_WIDTH]  rs  [1:2],
+  input                    rd_ce,
+  input  [`INST_TAG_WIDTH] rd_tag,
   input  [`REG_NUM_WIDTH]  rd,
 
   output reg [`INST_TAG_WIDTH] tag [1:2],
@@ -68,6 +70,9 @@ module reg_file (
         if (ce[2]) begin
           tag[2] <= regs[rs[2]].tag;
           src[2] <= regs[rs[2]].data;
+        end
+        if (rd_ce && rd) begin
+            regs[rd].tag <= rd_tag;
         end
       end
   end
