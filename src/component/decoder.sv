@@ -8,7 +8,7 @@ module decoder (
 
   output reg [`EX_UNIT_NUM_WIDTH] ex_unit,
 
-  output reg [`INST_OP_WIDTH] op,
+  output reg [`OP_TYPE_WIDTH] op,
   output reg [`COMMON_WIDTH]  imm,
     // choose between imm and src2
   output reg                  imm_tag,
@@ -21,7 +21,6 @@ module decoder (
   output reg                  stall,
     // whether MEM_LOAD
   output reg                  load_tag,
-  output reg [`ALU_TYPE_WIDTH] alu_type,
 
   // to reg_file
   output reg                  ce [1:2],
@@ -66,17 +65,17 @@ module decoder (
       rd_ce <= 1;
       rd <= inst[`POS_RD];
       case (merge_funct73(inst[`POS_FUNCT7], inst[`POS_FUNCT3]))
-        `ADD_FUNCT73:  alu_type <= `ALU_ADD;
-        `SUB_FUNCT73:  alu_type <= `ALU_SUB;
-        `SLL_FUNCT73:  alu_type <= `ALU_SLL;
-        `SLT_FUNCT73:  alu_type <= `ALU_SLT;
-        `SLTU_FUNCT73: alu_type <= `ALU_SLTU;
-        `XOR_FUNCT73:  alu_type <= `ALU_XOR;
-        `SRL_FUNCT73:  alu_type <= `ALU_SRL;
-        `SRA_FUNCT73:  alu_type <= `ALU_SRA;
-        `OR_FUNCT73:   alu_type <= `ALU_OR;
-        `AND_FUNCT73:  alu_type <= `ALU_AND;
-        default: alu_type <= `ALU_NOP;
+        `ADD_FUNCT73:  op <= `ALU_ADD;
+        `SUB_FUNCT73:  op <= `ALU_SUB;
+        `SLL_FUNCT73:  op <= `ALU_SLL;
+        `SLT_FUNCT73:  op <= `ALU_SLT;
+        `SLTU_FUNCT73: op <= `ALU_SLTU;
+        `XOR_FUNCT73:  op <= `ALU_XOR;
+        `SRL_FUNCT73:  op <= `ALU_SRL;
+        `SRA_FUNCT73:  op <= `ALU_SRA;
+        `OR_FUNCT73:   op <= `ALU_OR;
+        `AND_FUNCT73:  op <= `ALU_AND;
+        default: op <= `ALU_NOP;
       endcase
     end
   endtask
@@ -95,25 +94,25 @@ module decoder (
       rd_ce <= 1;
       rd <= inst[`POS_RD];
       case (inst[`POS_FUNCT3])
-        `ADDI_FUNCT3:  alu_type <= `ALU_ADD;
-        `SLTI_FUNCT3:  alu_type <= `ALU_SLT;
-        `SLTIU_FUNCT3: alu_type <= `ALU_SLTU;
-        `XORI_FUNCT3:  alu_type <= `ALU_XOR;
-        `ORI_FUNCT3:   alu_type <= `ALU_OR;
-        `ANDI_FUNCT3:  alu_type <= `ALU_AND;
+        `ADDI_FUNCT3:  op <= `ALU_ADD;
+        `SLTI_FUNCT3:  op <= `ALU_SLT;
+        `SLTIU_FUNCT3: op <= `ALU_SLTU;
+        `XORI_FUNCT3:  op <= `ALU_XOR;
+        `ORI_FUNCT3:   op <= `ALU_OR;
+        `ANDI_FUNCT3:  op <= `ALU_AND;
         // shift
         `SLLI_FUNCT3:  begin
-                         alu_type <= `ALU_SLL;
+                         op <= `ALU_SLL;
                          imm <= $signed(inst[`POS_SHAMT]);
                        end
         `SRLAI_FUNCT3: begin
                          if (inst[30])
-                           alu_type <= `ALU_SRL;
+                           op <= `ALU_SRL;
                          else
-                           alu_type <= `ALU_SRA;
+                           op <= `ALU_SRA;
                          imm <= $signed(inst[`POS_SHAMT]);
                        end
-        default: alu_type <= `ALU_NOP;
+        default: op <= `ALU_NOP;
       endcase
     end
   endtask
@@ -144,7 +143,7 @@ module decoder (
     // rs[1/2];
     rd_ce <= 1;
     rd <= inst[`POS_RD];
-    alu_type <= `ALU_ADD;
+    op <= `ALU_ADD;
   endtask
 
   task decode_jal_type;
@@ -159,7 +158,7 @@ module decoder (
       // rs12
       rd_ce <= 1;
       rd <= inst[`POS_RD];
-      alu_type <= `ALU_ADD;
+      op <= `ALU_ADD;
 
       stall <= 1;
     end
@@ -178,7 +177,7 @@ module decoder (
       // rs[2]
       rd_ce <= 1;
       rd <= inst[`POS_RD];
-      alu_type <= `ALU_ADD;
+      op <= `ALU_ADD;
 
       stall <= 1;
     end
@@ -208,8 +207,6 @@ module decoder (
     if (rst)
       reset;
     else begin
-      $display("%b", inst);
-      $display("%b", inst[`POS_OPCODE]);
       case (inst[`POS_OPCODE])
         `R_TYPE_OPCODE: decode_rtype;
         `I_TYPE_OPCODE: decode_itype;
@@ -219,7 +216,7 @@ module decoder (
         `JALR_OPCODE:   decode_jalr_type;
         // TODO: branch
         `LOAD_OPCODE:   decode_load_type;
-        default: $display("error");
+        default: ;
       endcase
     end
   end

@@ -66,10 +66,14 @@ module reg_file (
         if (ce[1]) begin
           tag[1] <= regs[rs[1]].tag;
           src[1] <= regs[rs[1]].data;
+        end else begin
+          tag[1] <= `TAG_INVALID;
         end
         if (ce[2]) begin
           tag[2] <= regs[rs[2]].tag;
           src[2] <= regs[rs[2]].data;
+        end else begin
+          tag[2] <= `TAG_INVALID;
         end
         if (rd_ce && rd) begin
             regs[rd].tag <= rd_tag;

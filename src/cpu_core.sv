@@ -15,6 +15,8 @@ module cpu_core (
   always @ (posedge clk) begin
     target <= target + 1;
   end
+  rob_inf rob_info();
+  //////////////////////
 
   ifid_inf if_ifid();
   wire id_out_stall;
@@ -38,7 +40,7 @@ module cpu_core (
     .to_id(ifid_id)
     );
 
-  idex_inf id_idex();
+  id_inf id_idex();
 
   id ID(
     .clk(clk),
@@ -51,6 +53,26 @@ module cpu_core (
     .target(target), // test
 
     .to_idex(id_idex)
+    );
+
+  ex_in_inf idex_ex();
+
+  idex IDEX(
+    .rst(rst),
+    .clk(clk),
+    .from_id(id_idex),
+    .to_ex(idex_ex)
+    );
+
+  ex_alu_out_inf ex_exwb_alu();
+
+  ex EX(
+    .rst(rst),
+    .clk(clk),
+
+    .in(idex_ex),
+    .rob_info(rob_info),
+    .alu_out(ex_exwb_alu)
     );
 
 endmodule : cpu_core

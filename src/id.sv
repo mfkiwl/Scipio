@@ -1,5 +1,18 @@
 `include "common_def.h"
 
+interface id_inf;
+  bit [`EX_UNIT_NUM_WIDTH] ex_unit;
+
+  bit [`OP_TYPE_WIDTH]    op;
+  logic [`INST_TAG_WIDTH] tag [1:2];
+  bit [`COMMON_WIDTH]     val [1:2];
+
+  bit [`INST_TAG_WIDTH] target; // the position in ROB
+
+  modport out(output ex_unit, op, tag, val, target);
+  modport in (input  ex_unit, op, tag, val, target);
+endinterface
+
 module id (
   input clk,
   input rst,
@@ -22,7 +35,7 @@ module id (
 
   output reg stall_if,
 
-  idex_inf.out to_idex
+  id_inf.out to_idex
   );
 
   assign to_idex.target = target;

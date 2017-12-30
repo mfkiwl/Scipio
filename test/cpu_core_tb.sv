@@ -14,9 +14,9 @@ module cpu_core_tb;
     stall = 0;
     clk = 0;
     rst = 1;
-    #100;
+    #200;
     rst = 0;
-    forever #100 clk = ~clk;
+    forever #200 clk = ~clk;
   end
 
 endmodule

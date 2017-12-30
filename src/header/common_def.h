@@ -1,5 +1,6 @@
 `include "alu_type.h"
 `include "inst_code.h"
+`include "op_type.h"
 
 `define TODO_WIDTH   31:0
 

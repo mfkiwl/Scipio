@@ -1,20 +1,21 @@
 `include "common_def.h"
 
 interface alu_reserv_inf;
+  bit ce;
   bit [`INST_TAG_WIDTH] target;
   bit [`COMMON_WIDTH]   val [1:2];
-  bit [`INST_TAG_WIDTH] tag [1:2];
+  logic [`INST_TAG_WIDTH] tag [1:2];
   bit [`ALU_TYPE_WIDTH] op;
-  modport out(output target, val, tag, op);
-  modport in (input  target, val, tag, op);
+  modport out(output target, val, tag, op, ce);
+  modport in (input  target, val, tag, op, ce);
 endinterface
 
 typedef struct {
   bit valid;
 
-  bit [`INST_TAG_WIDTH] target;
+  logic [`INST_TAG_WIDTH] target;
   bit [`COMMON_WIDTH]   val [1:2];
-  bit [`INST_TAG_WIDTH] tag [1:2];
+  logic [`INST_TAG_WIDTH] tag [1:2];
   bit [`ALU_TYPE_WIDTH] op;
 } alu_reserv_entry;
 
@@ -26,7 +27,7 @@ module alu (
 
   alu_reserv_inf.in new_entry,
   rob_inf.snoop     rob_info,
-  // TODO: output
+
   output reg[`INST_TAG_WIDTH] target,
   output reg[`COMMON_WIDTH]   result
   );
@@ -75,10 +76,12 @@ module alu (
   task insert_inst;
     integer i, pos;
     begin
+      $display("insert");
       if (new_entry.target !== `TAG_INVALID) begin
         pos = -1;
         for (i = 0; i < `RES_ENTRY_NUM; i = i + 1)
           pos = (entries[i].valid) ? pos : i;
+        $display("insert %d", pos);
         entries[pos].valid = 1;
         entries[pos].target = new_entry.target;
         entries[pos].val = new_entry.val;
@@ -93,14 +96,19 @@ module alu (
   task try_issue;
     integer i, pos;
     begin
+      pos = -1;
       for (i = 0; i < `RES_ENTRY_NUM; i = i + 1) begin
         if (entries[i].valid && entries[i].tag[1] == `TAG_INVALID
           && entries[i].tag[2] == `TAG_INVALID)
           pos = i;
+      end
+      $display("issue ", pos);
+      if (pos !== -1) begin
         target = entries[pos].target;
         calc_type = entries[pos].op;
         calc_src[1] = entries[pos].val[1];
         calc_src[2] = entries[pos].val[2];
+        $display("type = %d, %d ' %d", calc_type, calc_src[1], calc_src[2]);
       end
     end
   endtask
@@ -113,17 +121,20 @@ module alu (
     end
   endtask
 
-  always @ ( * ) begin
+  always @ (new_entry.ce) begin
+    $display("!!!!");
     insert_inst;
     update_val;
-    if (!busy) begin
+    // if (!busy) begin
       try_issue;
-    end
+      result = alu_calc(calc_type, calc_src[1], calc_src[2]);
+    // end
   end
 
-  function alu_calc;
+  function [`COMMON_WIDTH] alu_calc;
     input [`ALU_TYPE_WIDTH] alu_type;
-    input [`COMMON_WIDTH] src1, src2;
+    input [`COMMON_WIDTH] src1;
+    input [`COMMON_WIDTH] src2;
     begin
       case (alu_type)
         `ALU_ADD:	 alu_calc = src1 + src2;
@@ -148,11 +159,13 @@ module alu (
 
   // calculate
   // TODO: clk
-  always @ ( * ) begin
-    busy = 1;
-    result = alu_calc(calc_type, calc_src[1], calc_src[2]);
-    busy = 0;
-  end
+  // always @ (*) begin
+  //   busy = 1;
+  //   $display("calc: %d, %h, %h", calc_type, calc_src[1], calc_src[2]);
+  //   result = alu_calc(calc_type, calc_src[1], calc_src[2]);
+  //   $display(" = %d", result);
+  //   busy = 0;
+  // end
 
   // calculate
 
