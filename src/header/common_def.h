@@ -23,5 +23,6 @@
 
 
 `define ROB_ENTRY_NUM   8
+`define ROB_ENTRY_NUM_WIDTH 2:0
 `define RES_ENTRY_NUM   8
 `define RES_ENTRY_NUM_WIDTH 2:0

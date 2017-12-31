@@ -40,7 +40,7 @@ module ex (
     assign alu_inf.val = in.val;
     assign alu_inf.tag = in.tag;
     assign alu_inf.op  = in.op;
-    assign alu_inf.ce  = in.ce; 
+    assign alu_inf.ce  = in.ce;
 
   alu ex_alu(
     .rst(rst),

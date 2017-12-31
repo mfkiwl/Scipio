@@ -16,6 +16,8 @@ module cpu_core (
     target <= target + 1;
   end
   rob_inf rob_info();
+  rob_inf bc();
+  rob_inf wb();
   //////////////////////
 
   ifid_inf if_ifid();
@@ -42,6 +44,8 @@ module cpu_core (
 
   id_inf id_idex();
 
+  rob_inf id_rob();
+
   id ID(
     .clk(clk),
     .rst(rst),
@@ -50,7 +54,7 @@ module cpu_core (
 
     .stall_if(id_out_stall),
 
-    .target(target), // test
+    .id_rob(id_rob),
 
     .to_idex(id_idex)
     );
@@ -73,6 +77,17 @@ module cpu_core (
     .in(idex_ex),
     .rob_info(rob_info),
     .alu_out(ex_exwb_alu)
+    );
+
+  rob ROB (
+    .clk(clk),
+    .rst(rst),
+
+    .alu_in(ex_exwb_alu),
+
+    .rob_id(id_rob),
+    .broadcast(bc),
+    .to_wb(wb)
     );
 
 endmodule : cpu_core

@@ -122,13 +122,18 @@ module alu (
   endtask
 
   always @ (new_entry.ce) begin
-    $display("!!!!");
     insert_inst;
     update_val;
     // if (!busy) begin
-      try_issue;
-      result = alu_calc(calc_type, calc_src[1], calc_src[2]);
+      // try_issue;
+      // result = alu_calc(calc_type, calc_src[1], calc_src[2]);
     // end
+  end
+
+  always @ (negedge clk) begin
+
+    try_issue;
+    result = alu_calc(calc_type, calc_src[1], calc_src[2]);
   end
 
   function [`COMMON_WIDTH] alu_calc;

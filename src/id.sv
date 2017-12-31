@@ -29,8 +29,10 @@ module id (
   input [`INST_TAG_WIDTH] w_tag,
 
   // ROB information
-  input [`INST_TAG_WIDTH] target,
-  input                   rob_full,
+  rob_inf.id_rob          id_rob,
+  // input [`INST_TAG_WIDTH] target,
+  // input                   rob_full,
+
   input reservation_full [0:`EX_UNIT_NUM-1],
 
   output reg stall_if,
@@ -38,7 +40,27 @@ module id (
   id_inf.out to_idex
   );
 
-  assign to_idex.target = target;
+
+  reg tag_ce;
+  always @ (posedge rst or posedge clk) begin
+    if (rst) begin
+      tag_ce = 0;
+      id_rob.tag_token = 0;
+    end
+  end
+
+  always @ (negedge clk) begin
+    // TODO: no inst
+    tag_ce = ~tag_ce;
+    id_rob.tag_ce = tag_ce;
+    if (id_rob.full || decoder_out_ex_unit == `EX_ERR_UNIT) begin
+      id_rob.tag_token = 0;
+    end else begin
+      id_rob.tag_token = 1;
+      id_rob.rd = decoder_out_rd;
+      id_rob.op = decoder_out_op;
+    end
+  end
 
   /* wires:
    * ex_unit: [x]
@@ -56,6 +78,8 @@ module id (
   wire [`REG_NUM_WIDTH] decoder_out_rs [1:2];
   wire                  decoder_out_rd_ce;
   wire [`REG_NUM_WIDTH] decoder_out_rd;
+  wire [`OP_TYPE_WIDTH] decoder_out_op;
+  wire [`EX_UNIT_NUM_WIDTH] decoder_out_ex_unit;
 
   // stall
   // always @ ( * ) begin
@@ -67,13 +91,15 @@ module id (
   //     to_idex.target <= target;
   //   end
   // end
+  assign to_idex.op = decoder_out_op;
+  assign to_idex.ex_unit = decoder_out_ex_unit;
 
   decoder id_decoder(
     .rst(rst),
     .inst(from_ifid.inst),
 
-    .ex_unit(to_idex.ex_unit),
-    .op(to_idex.op),
+    .ex_unit(decoder_out_ex_unit),
+    .op(decoder_out_op),
     .ce(decoder_out_ce),
     .rd(decoder_out_rd),
     .rd_ce(decoder_out_rd_ce),
@@ -100,7 +126,7 @@ module id (
     .ce(decoder_out_ce),
     .rs(decoder_out_rs),
     .rd(decoder_out_rd),
-    .rd_tag(target),
+    // .rd_tag(target), // TODO:rd_tag
     .rd_ce(decoder_out_rd_ce),
 
     .src(reg_file_out_rs),
