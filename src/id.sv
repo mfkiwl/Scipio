@@ -1,16 +1,24 @@
 `include "common_def.h"
 
-interface id_inf;
-  bit [`EX_UNIT_NUM_WIDTH] ex_unit;
+interface ifid_id_inf;
+  bit [`COMMON_WIDTH] pc_addr;
+  bit [`COMMON_WIDTH] inst;
 
-  bit [`OP_TYPE_WIDTH]    op;
+  modport id   (input  pc_addr, inst);
+  modport ifid (output pc_addr, inst);
+endinterface
+
+interface id_idex_inf;
+  bit [`EX_UNIT_NUM_WIDTH] ex_unit;
+  bit [`OP_TYPE_WIDTH]     op;
+
   logic [`INST_TAG_WIDTH] tag [1:2];
   bit [`COMMON_WIDTH]     val [1:2];
 
   bit [`INST_TAG_WIDTH] target; // the position in ROB
 
-  modport out(output ex_unit, op, tag, val, target);
-  modport in (input  ex_unit, op, tag, val, target);
+  modport id  (output ex_unit, op, tag, val, target);
+  modport idex (input ex_unit, op, tag, val, target);
 endinterface
 
 module id (
@@ -18,68 +26,15 @@ module id (
   input rst,
   input rst_tag,
 
-  // from IFID
-  ifid_inf.in from_ifid,
-  // input [`COMMON_WIDTH] inst,
-  // input [`COMMON_WIDTH] pc_addr,
-
-  // fomr wb
-  input [`COMMON_WIDTH]   wd,
-  input [`REG_NUM_WIDTH]  wr, // destination register
-  input [`INST_TAG_WIDTH] w_tag,
-
-  // ROB information
-  rob_inf.id_rob          id_rob,
-  // input [`INST_TAG_WIDTH] target,
-  // input                   rob_full,
+  ifid_id_inf.id from_ifid,
+  rob_pos_inf.id rob_pos,
+  wb_id_inf.id   wb,
 
   input reservation_full [0:`EX_UNIT_NUM-1],
-
   output reg stall_if,
 
-  id_inf.out to_idex
+  id_idex_inf.id to_idex
   );
-
-
-  reg tag_ce;
-  always @ (posedge rst or posedge clk) begin
-    if (rst) begin
-      tag_ce = 0;
-      id_rob.tag_token = 0;
-    end
-  end
-
-  always @ (negedge clk) begin
-    // TODO: no inst
-    tag_ce = ~tag_ce;
-    id_rob.tag_ce = tag_ce;
-    if (id_rob.full || decoder_out_ex_unit == `EX_ERR_UNIT) begin
-      id_rob.tag_token = 0;
-    end else begin
-      id_rob.tag_token = 1;
-      id_rob.rd = decoder_out_rd;
-      id_rob.op = decoder_out_op;
-    end
-  end
-
-  /* wires:
-   * ex_unit: [x]
-   * op: [x]
-   * tag[1:2]: [x, x]
-   * val[1:2]: [x, x]
-   * // addr:
-   * target: [x]
-   */
-
-  wire [`COMMON_WIDTH]  decoder_out_imm;
-  wire                  decoder_out_imm_tag;
-  wire                  decoder_out_pc_tag;
-  wire                  decoder_out_ce [1:2];
-  wire [`REG_NUM_WIDTH] decoder_out_rs [1:2];
-  wire                  decoder_out_rd_ce;
-  wire [`REG_NUM_WIDTH] decoder_out_rd;
-  wire [`OP_TYPE_WIDTH] decoder_out_op;
-  wire [`EX_UNIT_NUM_WIDTH] decoder_out_ex_unit;
 
   // stall
   // always @ ( * ) begin
@@ -91,59 +46,114 @@ module id (
   //     to_idex.target <= target;
   //   end
   // end
-  assign to_idex.op = decoder_out_op;
-  assign to_idex.ex_unit = decoder_out_ex_unit;
+
+  //////////////////////
+  decoder_control_inf  decoder_control();
+  decoder_reg_file_inf decoder_reg_file();
+  reg_file_result_inf  reg_file_result();
 
   decoder id_decoder(
     .rst(rst),
     .inst(from_ifid.inst),
+    .pc_addr(from_ifid.pc_addr),
 
-    .ex_unit(decoder_out_ex_unit),
-    .op(decoder_out_op),
-    .ce(decoder_out_ce),
-    .rd(decoder_out_rd),
-    .rd_ce(decoder_out_rd_ce),
-    .rs(decoder_out_rs),
-    .imm(decoder_out_imm),
-    .imm_tag(decoder_out_imm_tag),
-
-    .stall(stall_if)
+    .control(decoder_control),
+    .decoder_reg_file(decoder_reg_file)
     );
 
-  wire [`COMMON_WIDTH] reg_file_out_rs[1:2];
-
+  wire [`INST_TAG_WIDTH] target = rob_pos.avail_tag;
   reg_file id_reg_file(
-    .rst(rst),
-    .rst_tag(rst),
     .clk(clk),
+    .rst(rst),
+    .rst_tag(rst_tag),
 
-    // wb
-    .wd(wd),
-    .wr(wr),
-    .w_tag(w_tag),
-
-    // read
-    .ce(decoder_out_ce),
-    .rs(decoder_out_rs),
-    .rd(decoder_out_rd),
-    // .rd_tag(target), // TODO:rd_tag
-    .rd_ce(decoder_out_rd_ce),
-
-    .src(reg_file_out_rs),
-    .tag(to_idex.tag)
+    .rd_tag(target),
+    .wb(wb),
+    .in(decoder_reg_file),
+    .out(reg_file_result)
     );
 
-  mux #(`COMMON_LENGTH) imm_src(
-    .in1(decoder_out_imm),
-    .in2(reg_file_out_rs[2]),
-    .condition(decoder_out_imm_tag),
-    .out(to_idex.val[2])
-    );
+  /// control & forward
+  // forward
+  assign to_idex.op      = decoder_control.op;
+  assign to_idex.ex_unit = decoder_control.ex_unit;
 
-  mux #(`COMMON_LENGTH) pc_src(
-    .in1(from_ifid.pc_addr),
-    .in2(reg_file_out_rs[1]),
-    .condition(decoder_out_pc_tag),
-    .out(to_idex.val[1])
-    );
+  // MUX (tag, val)
+  always @ ( * ) begin
+    // src1
+    to_idex.val[1] <= reg_file_result.val[1];
+    to_idex.tag[1] <= (decoder_control.rs_en[1]) ?
+                      reg_file_result.tag[1] : `TAG_INVALID;
+    // src2
+    if (decoder_control.imm_en) begin
+      to_idex.val[2] <= decoder_control.imm;
+      to_idex.tag[2] <= `TAG_INVALID;
+    end else begin
+      to_idex.val[2] <= reg_file_result.val[2];
+      to_idex.tag[2] <= (decoder_control.rs_en[2]) ?
+                        reg_file_result.tag[2] : `TAG_INVALID;
+    end
+  end
+
+  // tag (rob)
+  reg tag_ce;
+  always @ (posedge rst or posedge clk) begin
+    if (rst) begin
+      tag_ce = 0;
+      rob_pos.tag_token = 0;
+    end
+  end
+  always @ (negedge clk) begin
+    // TODO: no inst, ROB FULL
+    tag_ce = ~tag_ce;
+    rob_pos.tag_ce = tag_ce;
+    if (rob_pos.full || decoder_control.ex_unit == `EX_ERR_UNIT) begin
+      rob_pos.tag_token = 0;
+    end else begin
+      //target = rob_pos.avail_tag;
+      rob_pos.tag_token = 1;
+      rob_pos.rd = decoder_reg_file.rd;
+      rob_pos.op = decoder_control.op;
+    end
+  end
+
 endmodule // id
+
+interface decoder_reg_file_inf;
+  bit [`REG_NUM_WIDTH] rs[1:2];
+  bit                  rd_en;
+  bit [`REG_NUM_WIDTH] rd;
+
+  // rd_en = 1 if and only if reg[rd] will be written
+  // Otherwise, rd_en = 0;
+  // Tag of reg[0] always is TAG_INVALID
+
+  // rs_en[i] is not provided because src[i] will be
+  // read no matter whether it is needed, and a MUX
+  // will determine whether it should be forwarded.
+  modport decoder (output rs, rd_en, rd);
+  modport reg_file(input  rs, rd_en, rd);
+endinterface
+
+interface decoder_control_inf;
+  bit [`OP_TYPE_WIDTH]     op;
+  bit [`EX_UNIT_NUM_WIDTH] ex_unit;
+
+  bit                 rs_en[1:2];
+  bit [`COMMON_WIDTH] imm;
+  bit                 imm_en;
+  // TODO: pc related tags
+
+  // imm is the sign extended immediate value
+  // imm_en = 1   iff imm is required
+  // rs_en[i] = 1 iff rs[i] is required
+  modport decoder (output op, ex_unit, rs_en, imm, imm_en);
+endinterface
+
+interface reg_file_result_inf;
+  bit [`COMMON_WIDTH]   val[1:2];
+  bit [`INST_TAG_WIDTH] tag[1:2];
+
+  // tag is used to determine whether the value is valid
+  modport reg_file (output val, tag);
+endinterface

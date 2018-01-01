@@ -6,117 +6,86 @@ module decoder (
   input [`COMMON_WIDTH] inst,
   input [`COMMON_WIDTH] pc_addr,
 
-  output reg [`EX_UNIT_NUM_WIDTH] ex_unit,
-
-  output reg [`OP_TYPE_WIDTH] op,
-  output reg [`COMMON_WIDTH]  imm,
-    // choose between imm and src2
-  output reg                  imm_tag,
-    // choose between pc_addr and src1
-  output reg                  pc_tag,
-    // whether the pc_addr should be stored in rd
-  output reg                  store_pc_tag,
-    // whether IF should stop
-    // TODO
-  output reg                  stall,
-    // whether MEM_LOAD
-  output reg                  load_tag,
-
-  // to reg_file
-  output reg                  ce [1:2],
-  output reg [`REG_NUM_WIDTH] rs [1:2],
-  output reg                  rd_ce,
-  output reg [`REG_NUM_WIDTH] rd
+  decoder_control_inf.decoder  control,
+  decoder_reg_file_inf.decoder decoder_reg_file
   );
 
-  function [9:0] merge_funct73;
-    input  [6:0] funct7;
-    input  [2:0] funct3;
-    begin
-      merge_funct73 = {funct7, funct3};
+  always @ ( * ) begin
+    if (rst)
+      reset;
+    else begin
+      clean_output;
+      case (inst[`POS_OPCODE])
+        `R_TYPE_OPCODE: decode_rtype;
+        `I_TYPE_OPCODE: decode_itype;
+        // `LUI_OPCODE:    decode_lui_type;
+        // `AUIPC_OPCPDE:  decode_auipc_type;
+        // `JAL_OPCODE:    decode_jal_type;
+        // `JALR_OPCODE:   decode_jalr_type;
+        // // TODO: branch
+        // `LOAD_OPCODE:   decode_load_type;
+        default: decode_empty_type;
+      endcase
     end
-  endfunction
-
-  task reset;
-    begin
-      rd <= 0;
-      ce[1] <= 0;
-      ce[2] <= 0;
-      ex_unit <= 0;
-      imm_tag <= 0;
-      pc_tag <= 0;
-      store_pc_tag <= 0;
-      stall <= 0;
-      load_tag <= 0;
-    end
-  endtask
+  end
 
   task decode_rtype;
     begin
-      ex_unit <= `EX_ALU_UNIT;
-      // imm
-      imm_tag <= 0;
-      pc_tag <= 0;
-      store_pc_tag <= 0;
-      ce[1] <= 1;
-      rs[1] <= inst[`POS_RS1];
-      ce[2] <= 1;
-      rs[2] <= inst[`POS_RS2];
-      rd_ce <= 1;
-      rd <= inst[`POS_RD];
+      control.ex_unit <= `EX_ALU_UNIT;
+      control.rs_en[1] <= 1;
+      control.rs_en[2] <= 1;
+      decoder_reg_file.rs[1] <= inst[`POS_RS1];
+      decoder_reg_file.rs[2] <= inst[`POS_RS2];
+      decoder_reg_file.rd_en <= 1;
+      decoder_reg_file.rd <= inst[`POS_RD];
       case (merge_funct73(inst[`POS_FUNCT7], inst[`POS_FUNCT3]))
-        `ADD_FUNCT73:  op <= `ALU_ADD;
-        `SUB_FUNCT73:  op <= `ALU_SUB;
-        `SLL_FUNCT73:  op <= `ALU_SLL;
-        `SLT_FUNCT73:  op <= `ALU_SLT;
-        `SLTU_FUNCT73: op <= `ALU_SLTU;
-        `XOR_FUNCT73:  op <= `ALU_XOR;
-        `SRL_FUNCT73:  op <= `ALU_SRL;
-        `SRA_FUNCT73:  op <= `ALU_SRA;
-        `OR_FUNCT73:   op <= `ALU_OR;
-        `AND_FUNCT73:  op <= `ALU_AND;
-        default: op <= `ALU_NOP;
+        `ADD_FUNCT73:  control.op <= `ALU_ADD;
+        `SUB_FUNCT73:  control.op <= `ALU_SUB;
+        `SLL_FUNCT73:  control.op <= `ALU_SLL;
+        `SLT_FUNCT73:  control.op <= `ALU_SLT;
+        `SLTU_FUNCT73: control.op <= `ALU_SLTU;
+        `XOR_FUNCT73:  control.op <= `ALU_XOR;
+        `SRL_FUNCT73:  control.op <= `ALU_SRL;
+        `SRA_FUNCT73:  control.op <= `ALU_SRA;
+        `OR_FUNCT73:   control.op <= `ALU_OR;
+        `AND_FUNCT73:  control.op <= `ALU_AND;
+        default:       control.op <= `ALU_NOP;
       endcase
     end
   endtask
 
   task decode_itype;
     begin
-      ex_unit <= `EX_ALU_UNIT;
-      imm  <= $signed(inst[`POS_IMM]);
-      imm_tag <= 1;
-      pc_tag <= 0;
-      store_pc_tag <= 0;
-      ce[1] <= 1;
-      rs[1] <= inst[`POS_RS1];
-      ce[2] <= 0;
-      // rs2
-      rd_ce <= 1;
-      rd <= inst[`POS_RD];
+      control.ex_unit <= `EX_ALU_UNIT;
+      control.imm     <= $signed(inst[`POS_IMM]);
+      control.imm_en  <= 1;
+      control.rs_en[1] <= 1;
+      decoder_reg_file.rs[1] <= inst[`POS_RS1];
+      decoder_reg_file.rd_en <= 1;
+      decoder_reg_file.rd    <= inst[`POS_RD];
       case (inst[`POS_FUNCT3])
-        `ADDI_FUNCT3:  op <= `ALU_ADD;
-        `SLTI_FUNCT3:  op <= `ALU_SLT;
-        `SLTIU_FUNCT3: op <= `ALU_SLTU;
-        `XORI_FUNCT3:  op <= `ALU_XOR;
-        `ORI_FUNCT3:   op <= `ALU_OR;
-        `ANDI_FUNCT3:  op <= `ALU_AND;
+        `ADDI_FUNCT3:  control.op <= `ALU_ADD;
+        `SLTI_FUNCT3:  control.op <= `ALU_SLT;
+        `SLTIU_FUNCT3: control.op <= `ALU_SLTU;
+        `XORI_FUNCT3:  control.op <= `ALU_XOR;
+        `ORI_FUNCT3:   control.op <= `ALU_OR;
+        `ANDI_FUNCT3:  control.op <= `ALU_AND;
         // shift
         `SLLI_FUNCT3:  begin
-                         op <= `ALU_SLL;
-                         imm <= $signed(inst[`POS_SHAMT]);
+                         control.op <= `ALU_SLL;
+                         control.imm <= $signed(inst[`POS_SHAMT]);
                        end
         `SRLAI_FUNCT3: begin
-                         if (inst[30])
-                           op <= `ALU_SRL;
-                         else
-                           op <= `ALU_SRA;
-                         imm <= $signed(inst[`POS_SHAMT]);
+                         if (inst[30]) control.op <= `ALU_SRL;
+                         else control.op <= `ALU_SRA;
+                         control.imm <= $signed(inst[`POS_SHAMT]);
                        end
-        default: op <= `ALU_NOP;
+        default: control.op <= `ALU_NOP;
       endcase
     end
   endtask
 
+  /*
   task decode_lui_type;
     ex_unit <= `EX_FORWARDER_UNIT;
     imm[`POS_IMM_UI] <= inst[`POS_IMM_UI];
@@ -197,28 +166,41 @@ module decoder (
     rd <= inst[`POS_RD];
     load_tag <= 1;
   endtask
-
   // TODO
   task decode_store_type;
     ex_unit <= `EX_MEM_UNIT;
   endtask
+  */
 
-  always @ ( * ) begin
-    if (rst)
-      reset;
-    else begin
-      case (inst[`POS_OPCODE])
-        `R_TYPE_OPCODE: decode_rtype;
-        `I_TYPE_OPCODE: decode_itype;
-        `LUI_OPCODE:    decode_lui_type;
-        `AUIPC_OPCPDE:  decode_auipc_type;
-        `JAL_OPCODE:    decode_jal_type;
-        `JALR_OPCODE:   decode_jalr_type;
-        // TODO: branch
-        `LOAD_OPCODE:   decode_load_type;
-        default: ;
-      endcase
+  task decode_empty_type;
+    clean_output;
+  endtask
+
+  task clean_output;
+    control.op       <= `ALU_NOP;
+    control.ex_unit  <= `EX_ERR_UNIT;
+    control.rs_en[1] <= 0;
+    control.rs_en[2] <= 0;
+    control.imm      <= 0;
+    control.imm_en   <= 0;
+
+    decoder_reg_file.rs[1] <= 0;
+    decoder_reg_file.rs[2] <= 0;
+    decoder_reg_file.rd_en <= 0;
+    decoder_reg_file.rd    <= 0;
+  endtask
+
+  task reset;
+    begin
+      clean_output;
     end
-  end
+  endtask
 
+  function [9:0] merge_funct73;
+    input  [6:0] funct7;
+    input  [2:0] funct3;
+    begin
+      merge_funct73 = {funct7, funct3};
+    end
+  endfunction
 endmodule : decoder

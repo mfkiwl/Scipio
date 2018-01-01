@@ -1,21 +1,14 @@
 `include "common_def.h"
 
-interface ifid_inf;
-  bit [`COMMON_WIDTH] inst;
-  bit [`COMMON_WIDTH] pc_addr;
-
-  modport out(output inst, pc_addr);
-  modport in (input  inst, pc_addr);
-endinterface
-
 module ifid (
   input clk,
   input rst,
 
   input stall,
 
-  ifid_inf.in  from_if,
-  ifid_inf.out to_id
+  pif_ifid_inf.ifid  from_if,
+
+  ifid_id_inf.ifid to_id
   );
 
   always @ (posedge clk or posedge rst) begin

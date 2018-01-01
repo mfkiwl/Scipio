@@ -4,8 +4,8 @@ module idex (
   input clk,
   input rst,
 
-  id_inf.in  from_id,
-  ex_in_inf.out to_ex
+  id_idex_inf.idex from_id,
+  idex_ex_inf.idex to_ex
   );
 
   always @ (posedge clk or posedge rst) begin

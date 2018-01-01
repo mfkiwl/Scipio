@@ -76,12 +76,10 @@ module alu (
   task insert_inst;
     integer i, pos;
     begin
-      $display("insert");
       if (new_entry.target !== `TAG_INVALID) begin
         pos = -1;
         for (i = 0; i < `RES_ENTRY_NUM; i = i + 1)
           pos = (entries[i].valid) ? pos : i;
-        $display("insert %d", pos);
         entries[pos].valid = 1;
         entries[pos].target = new_entry.target;
         entries[pos].val = new_entry.val;
@@ -102,13 +100,12 @@ module alu (
           && entries[i].tag[2] == `TAG_INVALID)
           pos = i;
       end
-      $display("issue ", pos);
       if (pos !== -1) begin
         target = entries[pos].target;
         calc_type = entries[pos].op;
         calc_src[1] = entries[pos].val[1];
         calc_src[2] = entries[pos].val[2];
-        $display("type = %d, %d ' %d", calc_type, calc_src[1], calc_src[2]);
+        entries[pos].valid = 0;
       end
     end
   endtask
@@ -121,17 +118,14 @@ module alu (
     end
   endtask
 
-  always @ (new_entry.ce) begin
-    insert_inst;
-    update_val;
-    // if (!busy) begin
-      // try_issue;
-      // result = alu_calc(calc_type, calc_src[1], calc_src[2]);
-    // end
-  end
+  // always @ (new_entry.ce or broadcast.ce) begin
+  //   insert_inst;
+  //   update_val;
+  // end
 
   always @ (negedge clk) begin
-
+    insert_inst;
+    update_val;
     try_issue;
     result = alu_calc(calc_type, calc_src[1], calc_src[2]);
   end

@@ -1,17 +1,22 @@
 `include "common_def.h"
 
+interface pif_ifid_inf;
+  bit [`COMMON_WIDTH] inst;
+  bit [`COMMON_WIDTH] pc_addr;
+
+  modport pif (output inst, pc_addr);
+  modport ifid (input inst, pc_addr);
+endinterface
+
 module pif (
   input clk,
-
-  // input ce,
-
   input rst,
-  input stall,
 
+  input stall,
   input                 jump_ce,
   input [`COMMON_WIDTH] jump_pc,
 
-  ifid_inf.out to_idif
+  pif_ifid_inf.pif to_idif
   );
 
   wire [`COMMON_WIDTH] mux1_out_next_pc;

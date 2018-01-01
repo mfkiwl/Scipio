@@ -1,6 +1,6 @@
 `include "common_def.h"
 
-interface ex_in_inf;
+interface idex_ex_inf;
   bit ce;
 
   bit [`EX_UNIT_NUM_WIDTH] unit;
@@ -10,26 +10,25 @@ interface ex_in_inf;
   logic [`INST_TAG_WIDTH] tag [1:2];
   bit [`OP_TYPE_WIDTH]  op;
 
-  modport in (input  unit, target, val, tag, op, ce);
-  modport out(output unit, target, val, tag, op, ce);
+  modport ex  (input  unit, target, val, tag, op, ce);
+  modport idex(output unit, target, val, tag, op, ce);
 endinterface
 
-// just alu
-interface ex_alu_out_inf;
+interface ex_wb_alu_inf;
   logic [`INST_TAG_WIDTH] target;
-  bit [`COMMON_WIDTH] result;
+  bit   [`COMMON_WIDTH] result;
 
-  modport in (input  target, result);
-  modport out(output target, result);
+  modport wb (input  target, result);
+  modport ex (output target, result);
 endinterface
 
 module ex (
   input rst,
   input clk,
 
-  ex_in_inf.in       in,
+  idex_ex_inf.ex     in,
   rob_inf.snoop      rob_info,
-  ex_alu_out_inf.out alu_out,
+  ex_wb_alu_inf.out  alu_out,
 
   output full [0:`EX_UNIT_NUM-1]
   );

@@ -7,42 +7,48 @@ module cpu_core (
 
   // test
   reg jump_ce;
-  reg [`INST_TAG_WIDTH] target;
+  reg stall;
   always @ (posedge rst) begin
     jump_ce = 0;
-    target = 0;
+    stall = 0;
   end
-  always @ (posedge clk) begin
-    target <= target + 1;
-  end
+
   rob_inf rob_info();
   rob_inf bc();
   rob_inf wb();
   //////////////////////
 
-  ifid_inf if_ifid();
-  wire id_out_stall;
+  /////////// Interface //////////
+  // pipeline
+    pif_ifid_inf if_ifid();
+    ifid_id_inf  ifid_id();
+    id_idex_inf  id_idex();
+    idex_ex_inf  idex_ex();
+    // EX -> ROB
+      ex_wb_alu_inf ex_wb_alu();
+    wb_id_inf   wb_id();
+  // boradcast & snoop
+    rob_broadcast_inf rob_broadcast();
+  // tag
+    rob_pos_inf rob_pos();
+  ////////////////////////////////
 
   pif IF (
     .clk(clk),
     .rst(rst),
     .jump_ce(jump_ce),
-    .stall(id_out_stall),
+    .stall(stall),
 
     .to_idif(if_ifid)
     );
 
-  ifid_inf ifid_id();
-
   ifid IFID(
     .rst(rst),
     .clk(clk),
-    .stall(id_out_stall),
+    .stall(stall),
     .from_if(if_ifid),
     .to_id(ifid_id)
     );
-
-  id_inf id_idex();
 
   rob_inf id_rob();
 
@@ -54,12 +60,10 @@ module cpu_core (
 
     .stall_if(id_out_stall),
 
-    .id_rob(id_rob),
-
+    .rob_pos(rob_pos),
+    .wb(wb_id),
     .to_idex(id_idex)
     );
-
-  ex_in_inf idex_ex();
 
   idex IDEX(
     .rst(rst),
@@ -68,26 +72,27 @@ module cpu_core (
     .to_ex(idex_ex)
     );
 
-  ex_alu_out_inf ex_exwb_alu();
-
   ex EX(
     .rst(rst),
     .clk(clk),
 
     .in(idex_ex),
     .rob_info(rob_info),
-    .alu_out(ex_exwb_alu)
+    .alu_out(ex_wb_alu)
     );
 
   rob ROB (
     .clk(clk),
     .rst(rst),
 
-    .alu_in(ex_exwb_alu),
+    .alu_in(ex_wb_alu),
 
-    .rob_id(id_rob),
-    .broadcast(bc),
-    .to_wb(wb)
+    // .rob_id(id_rob),
+    // .broadcast(bc),
+    // .to_wb(wb)
+    .broadcast(rob_broadcast),
+    .pos(rob_pos),
+    .to_wb(wb_id)
     );
 
 endmodule : cpu_core

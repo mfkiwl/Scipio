@@ -13,6 +13,9 @@ module inst_rom (
 
   integer i;
   initial begin
+    for (i = 0; i < 32; i = i + 1) begin
+      inst_mem[i] = 0;
+    end
     $readmemh("/home/aaronren/Desktop/code_gener/sample.data", inst_mem);
     for (i = 0; i < 32; i = i + 1) begin
       inst_mem[i][31:24] <= inst_mem[i][7:0];

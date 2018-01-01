@@ -1,5 +1,40 @@
 `include "common_def.h"
 
+interface rob_broadcast_inf;
+  bit ce;
+  bit valid [0:`ROB_ENTRY_NUM-1];
+  bit ready [0:`ROB_ENTRY_NUM-1];
+  bit [`COMMON_WIDTH] val [0:`ROB_ENTRY_NUM-1];
+  bit [`INST_TAG_WIDTH] tag [0:`ROB_ENTRY_NUM-1];
+
+  modport snoop (input  valid, ready, val, tag, ce);
+  modport rob   (output valid, ready, val, tag, ce);
+endinterface
+
+interface rob_pos_inf;
+  bit full;
+  bit [`INST_TAG_WIDTH] avail_tag;
+  bit tag_ce;
+  bit tag_token;
+  bit [`REG_NUM_WIDTH] rd;
+  bit [`OP_TYPE_WIDTH] op;
+
+  modport rob(input  tag_token, tag_ce, rd, op,
+              output full, avail_tag);
+  modport id (output tag_token, tag_ce, rd, op,
+              input  full, avail_tag);
+endinterface
+
+interface wb_id_inf;
+  bit empty;
+  bit [`REG_NUM_WIDTH]  rd;
+  bit [`COMMON_WIDTH]   data;
+  bit [`INST_TAG_WIDTH] tag;
+
+  modport rob (output rd, data, tag);
+  modport id  (input  rd, data, tag);
+endinterface
+
 interface rob_inf;
   bit ce;
   bit valid [0:`ROB_ENTRY_NUM-1];
@@ -35,6 +70,7 @@ interface rob_inf;
   modport wb    (input  wb_reg, wb_data, wb_tag);
 endinterface
 
+
 typedef struct {
   bit valid;
   bit ready;
@@ -49,27 +85,36 @@ module rob (
   input clk,
   input rst,
 
-  ex_alu_out_inf.in  alu_in,
+  ex_wb_alu_inf.wb  alu_in,
 
-  rob_inf.rob_id     rob_id,
-  rob_inf.broadcast  broadcast,
-  rob_inf.to_wb      to_wb
+  // rob_inf.rob_id     rob_id,
+  // rob_inf.broadcast  broadcast,
+  // rob_inf.to_wb      to_wb
+
+  rob_broadcast_inf  broadcast,
+  rob_pos_inf.rob    pos,
+  wb_id_inf.rob      to_wb
   );
 
   reg [`ROB_ENTRY_NUM_WIDTH] head, tail;
   rob_entry entries [0:`ROB_ENTRY_NUM-1];
 
+
   // broadcast
-  genvar gi;
-  generate
-    for (gi = 0; gi < `ROB_ENTRY_NUM; gi = gi + 1)
-    begin : bc
-      assign broadcast.valid[gi] = entries[gi].valid;
-      assign broadcast.ready[gi] = entries[gi].ready;
-      assign broadcast.val[gi] = entries[gi].val;
-      assign broadcast.tag[gi] = entries[gi].tag;
+  reg broadcast_ce;
+  task broadcast_to_ex;
+    integer i;
+    begin
+      for (i = 0; i < `ROB_ENTRY_NUM; i = i + 1) begin
+        broadcast.valid[i] = entries[i].valid;
+        broadcast.ready[i] = entries[i].ready;
+        broadcast.val[i] = entries[i].val;
+        broadcast.tag[i] = entries[i].tag;
+      end
+      broadcast_ce = ~broadcast_ce;
+      broadcast.ce = broadcast_ce;
     end
-  endgenerate
+  endtask
 
   task push;
     begin
@@ -83,21 +128,21 @@ module rob (
   task pop;
     begin
       if (entries[head].valid && entries[head].ready) begin
-        to_wb.wb_tag = entries[head].tag;
-        to_wb.wb_data = entries[head].val;
-        to_wb.wb_reg = entries[head].rd;
+        to_wb.tag = entries[head].tag;
+        to_wb.data = entries[head].val;
+        to_wb.rd = entries[head].rd;
         entries[head].valid = 0;
         head = head + 1;
       end else begin
-        to_wb.wb_tag = `TAG_INVALID;
+        to_wb.tag = `TAG_INVALID;
       end
     end
   endtask
 
   task updata_to_id;
     begin
-      rob_id.full = (tail == head - 1);
-      rob_id.avail_tag = tail;
+      pos.full = (tail == head - 1);
+      pos.avail_tag = tail;
     end
   endtask
 
@@ -105,18 +150,19 @@ module rob (
     if (rst) begin
       reset;
     end else begin
+      broadcast_to_ex;
       push;
       pop;
       updata_to_id;
     end
   end
 
-  always @ (rob_id.tag_ce) begin
-    if (rob_id.tag_token) begin
+  always @ (pos.tag_ce) begin
+    if (pos.tag_token) begin
       entries[tail].valid = 1;
-      entries[tail].rd = rob_id.rd;
+      entries[tail].rd = pos.rd;
       entries[tail].ready = 0;
-      entries[tail].op = rob_id.op;
+      entries[tail].op = pos.op;
       entries[tail].tag = tail;
 
       tail = tail + 1;
@@ -130,6 +176,7 @@ module rob (
       tail <= 0;
       for (i = 0; i < `ROB_ENTRY_NUM; i = i + 1)
         entries[i].valid <= 0;
+      broadcast_ce <= 0;
     end
   endtask
 
