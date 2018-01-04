@@ -35,6 +35,7 @@ interface wb_id_inf;
   modport id  (input  rd, data, tag);
 endinterface
 
+/*
 interface rob_inf;
   bit ce;
   bit valid [0:`ROB_ENTRY_NUM-1];
@@ -69,7 +70,14 @@ interface rob_inf;
   modport to_wb (output wb_reg, wb_data, wb_tag);
   modport wb    (input  wb_reg, wb_data, wb_tag);
 endinterface
+*/
+interface exwb_rob_alu_inf;
+  bit [`COMMON_WIDTH]   result;
+  bit [`INST_TAG_WIDTH] target;
 
+  modport rob  (input  result, target);
+  modport exwb (output result, target);
+endinterface
 
 typedef struct {
   bit valid;
@@ -85,15 +93,17 @@ module rob (
   input clk,
   input rst,
 
-  ex_wb_alu_inf.wb  alu_in,
+  // TODO:
+  // ex_wb_alu_inf.wb  alu_in,
+  exwb_rob_alu_inf.rob alu_in,
 
   // rob_inf.rob_id     rob_id,
   // rob_inf.broadcast  broadcast,
   // rob_inf.to_wb      to_wb
 
-  rob_broadcast_inf  broadcast,
-  rob_pos_inf.rob    pos,
-  wb_id_inf.rob      to_wb
+  rob_broadcast_inf.rob broadcast,
+  rob_pos_inf.rob       pos,
+  wb_id_inf.rob         to_wb
   );
 
   reg [`ROB_ENTRY_NUM_WIDTH] head, tail;
@@ -150,10 +160,19 @@ module rob (
     if (rst) begin
       reset;
     end else begin
-      broadcast_to_ex;
       push;
-      pop;
+      broadcast_to_ex;
+      // pop;
       updata_to_id;
+    end
+  end
+
+  always @ (negedge clk or posedge rst) begin
+    if (rst) begin
+      reset;
+    end else begin
+      pop;
+      // updata_to_id;
     end
   end
 

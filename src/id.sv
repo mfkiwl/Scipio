@@ -62,6 +62,7 @@ module id (
     );
 
   wire [`INST_TAG_WIDTH] target = rob_pos.avail_tag;
+  assign to_idex.target = target;
   reg_file id_reg_file(
     .clk(clk),
     .rst(rst),
@@ -110,7 +111,7 @@ module id (
     if (rob_pos.full || decoder_control.ex_unit == `EX_ERR_UNIT) begin
       rob_pos.tag_token = 0;
     end else begin
-      //target = rob_pos.avail_tag;
+      // target = rob_pos.avail_tag;
       rob_pos.tag_token = 1;
       rob_pos.rd = decoder_reg_file.rd;
       rob_pos.op = decoder_control.op;

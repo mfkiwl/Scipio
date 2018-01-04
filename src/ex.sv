@@ -14,21 +14,24 @@ interface idex_ex_inf;
   modport idex(output unit, target, val, tag, op, ce);
 endinterface
 
-interface ex_wb_alu_inf;
+interface ex_exwb_alu_inf;
   logic [`INST_TAG_WIDTH] target;
   bit   [`COMMON_WIDTH] result;
 
-  modport wb (input  target, result);
-  modport ex (output target, result);
+  modport exwb (input  target, result);
+  modport ex   (output target, result);
 endinterface
 
 module ex (
   input rst,
   input clk,
 
-  idex_ex_inf.ex     in,
-  rob_inf.snoop      rob_info,
-  ex_wb_alu_inf.out  alu_out,
+  // input
+  idex_ex_inf.ex          in,
+  rob_broadcast_inf.snoop rob_info,
+
+  // to
+  ex_exwb_alu_inf.ex       alu_out,
 
   output full [0:`EX_UNIT_NUM-1]
   );

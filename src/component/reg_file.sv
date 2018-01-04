@@ -23,12 +23,12 @@ module reg_file (
   always @ (negedge clk or posedge rst) begin
       if (rst) reset;
       else begin
-        out.tag[1] <= regs[in.rs[1]].tag;
-        out.val[1] <= regs[in.rs[1]].data;
-        out.tag[2] <= regs[in.rs[2]].tag;
-        out.val[2] <= regs[in.rs[2]].data;
+        out.tag[1] = regs[in.rs[1]].tag;
+        out.val[1] = regs[in.rs[1]].data;
+        out.tag[2] = regs[in.rs[2]].tag;
+        out.val[2] = regs[in.rs[2]].data;
         if (in.rd_en && in.rd)
-            regs[in.rd].tag <= rd_tag;
+            regs[in.rd].tag = rd_tag;
       end
   end
 

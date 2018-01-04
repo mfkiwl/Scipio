@@ -25,8 +25,8 @@ module alu (
 
   output reg full,
 
-  alu_reserv_inf.in new_entry,
-  rob_inf.snoop     rob_info,
+  alu_reserv_inf.in        new_entry,
+  rob_broadcast_inf.snoop  rob_info,
 
   output reg[`INST_TAG_WIDTH] target,
   output reg[`COMMON_WIDTH]   result
@@ -48,7 +48,7 @@ module alu (
 
   task update_val_x;
     input [`RES_ENTRY_NUM_WIDTH] pos;
-    integer i;
+    integer i, flag;
     begin
       for (i = 0; i < `ROB_ENTRY_NUM; i = i + 1)
         if (rob_info.valid[i] && rob_info.ready[i]) begin
@@ -68,7 +68,8 @@ module alu (
     integer i;
     begin
       for (i = 0; i < `RES_ENTRY_NUM; i = i + 1) begin
-        if (entries[i].valid) update_val_x(i);
+        if (entries[i].valid)
+          update_val_x(i);
       end
     end
   endtask
@@ -144,8 +145,9 @@ module alu (
         `ALU_OR:	 alu_calc = src1 | src2;
         `ALU_NOR:	 alu_calc = ~(src1 | src2);
         `ALU_XOR:	 alu_calc = src1 ^ src2;
-        `ALU_SLL:	 alu_calc = src2 << src1[4:0];
-        `ALU_SRL:	 alu_calc = src2 >> src1[4:0];
+        `ALU_SLL:	 alu_calc = src1 << src2[4:0];
+        `ALU_SRL:	 alu_calc = src1 >> src2[4:0];
+        // TODO: src1 <=> src2
         `ALU_SRA:	 alu_calc = $signed(src2) >>> src1[4:0];
         `ALU_ROR:	 alu_calc = (src2 >> src1[4:0]) | (src2 << (32-src1[4:0]));
         `ALU_SEQ:	 alu_calc = src1 == src2 ? 32'b1 : 32'b0;

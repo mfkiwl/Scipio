@@ -73,7 +73,7 @@ module decoder (
         // shift
         `SLLI_FUNCT3:  begin
                          control.op <= `ALU_SLL;
-                         control.imm <= $signed(inst[`POS_SHAMT]);
+                         control.imm <= $unsigned(inst[`POS_SHAMT]);
                        end
         `SRLAI_FUNCT3: begin
                          if (inst[30]) control.op <= `ALU_SRL;
@@ -85,21 +85,16 @@ module decoder (
     end
   endtask
 
-  /*
   task decode_lui_type;
     ex_unit <= `EX_FORWARDER_UNIT;
     imm[`POS_IMM_UI] <= inst[`POS_IMM_UI];
     imm[11:0] <= 0;
     imm_tag <= 1;
-    pc_tag <= 0;
-    store_pc_tag <= 0;
-    ce[1] <= 0;
-    ce[2] <= 0;
-    // rs[1/2];
     rd_ce <= 1;
     rd <= inst[`POS_RD];
   endtask
 
+/*
   task decode_auipc_type;
     ex_unit <= `EX_ALU_UNIT;
     imm[`POS_IMM_UI] <= inst[`POS_IMM_UI];

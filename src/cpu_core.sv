@@ -13,7 +13,7 @@ module cpu_core (
     stall = 0;
   end
 
-  rob_inf rob_info();
+  // rob_inf rob_info();
   rob_inf bc();
   rob_inf wb();
   //////////////////////
@@ -24,8 +24,11 @@ module cpu_core (
     ifid_id_inf  ifid_id();
     id_idex_inf  id_idex();
     idex_ex_inf  idex_ex();
-    // EX -> ROB
-      ex_wb_alu_inf ex_wb_alu();
+    // EX -> EXWB
+      ex_exwb_alu_inf  ex_exwb_alu();
+    // EXWB_WB
+      exwb_rob_alu_inf exwb_wb_alu();
+
     wb_id_inf   wb_id();
   // boradcast & snoop
     rob_broadcast_inf rob_broadcast();
@@ -77,15 +80,23 @@ module cpu_core (
     .clk(clk),
 
     .in(idex_ex),
-    .rob_info(rob_info),
-    .alu_out(ex_wb_alu)
+    .rob_info(rob_broadcast),
+    .alu_out(ex_exwb_alu)
+    );
+
+  exwb EXWB(
+    .clk(clk),
+    .rst(rst),
+
+    .alu_in(ex_exwb_alu),
+    .alu_out(exwb_wb_alu)
     );
 
   rob ROB (
     .clk(clk),
     .rst(rst),
 
-    .alu_in(ex_wb_alu),
+    .alu_in(exwb_wb_alu),
 
     // .rob_id(id_rob),
     // .broadcast(bc),
