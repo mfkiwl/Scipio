@@ -82,9 +82,14 @@ module id (
   // MUX (tag, val)
   always @ ( * ) begin
     // src1
-    to_idex.val[1] <= reg_file_result.val[1];
-    to_idex.tag[1] <= (decoder_control.rs_en[1]) ?
-                      reg_file_result.tag[1] : `TAG_INVALID;
+    if (decoder_control.pc_en) begin
+      to_idex.val[1] <= from_ifid.pc_addr;
+      to_idex.tag[1] <= `TAG_INVALID;
+    end else begin
+      to_idex.val[1] <= reg_file_result.val[1];
+      to_idex.tag[1] <= (decoder_control.rs_en[1]) ?
+                        reg_file_result.tag[1] : `TAG_INVALID;
+    end
     // src2
     if (decoder_control.imm_en) begin
       to_idex.val[2] <= decoder_control.imm;
@@ -144,11 +149,12 @@ interface decoder_control_inf;
   bit [`COMMON_WIDTH] imm;
   bit                 imm_en;
   // TODO: pc related tags
+  bit                 pc_en;
 
   // imm is the sign extended immediate value
   // imm_en = 1   iff imm is required
   // rs_en[i] = 1 iff rs[i] is required
-  modport decoder (output op, ex_unit, rs_en, imm, imm_en);
+  modport decoder (output op, ex_unit, rs_en, imm, imm_en, pc_en);
 endinterface
 
 interface reg_file_result_inf;

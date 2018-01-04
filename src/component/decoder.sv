@@ -19,7 +19,7 @@ module decoder (
         `R_TYPE_OPCODE: decode_rtype;
         `I_TYPE_OPCODE: decode_itype;
         `LUI_OPCODE:    decode_lui_type;
-        // `AUIPC_OPCPDE:  decode_auipc_type;
+        `AUIPC_OPCPDE:  decode_auipc_type;
         // `JAL_OPCODE:    decode_jal_type;
         // `JALR_OPCODE:   decode_jalr_type;
         // // TODO: branch
@@ -94,40 +94,36 @@ module decoder (
     decoder_reg_file.rd <= inst[`POS_RD];
   endtask
 
-/*
   task decode_auipc_type;
-    ex_unit <= `EX_ALU_UNIT;
-    imm[`POS_IMM_UI] <= inst[`POS_IMM_UI];
-    imm[11:0] <= 0;
-    imm_tag <= 1;
-    pc_tag <= 1;
-    store_pc_tag <= 0;
-    ce[1] <= 0;
-    ce[2] <= 0;
-    // rs[1/2];
-    rd_ce <= 1;
-    rd <= inst[`POS_RD];
-    op <= `ALU_ADD;
+    control.ex_unit <= `EX_ALU_UNIT;
+    control.imm[`POS_IMM_UI] <= inst[`POS_IMM_UI];
+    control.imm[11:0] <= 0;
+    control.imm_en <= 1;
+    control.pc_en <= 1;
+    decoder_reg_file.rd_en <= 1;
+    decoder_reg_file.rd <= inst[`POS_RD];
+    control.op <= `ALU_ADD;
   endtask
 
-  task decode_jal_type;
-    begin
-      ex_unit <= `EX_ALU_UNIT;
-      imm <= $signed({inst[31:31], inst[19:12], inst[20:20], inst[30:21]}) << 1;
-      imm_tag <= 1;
-      pc_tag <= 1;
-      store_pc_tag <= 1;
-      ce[1] <= 0;
-      ce[2] <= 0;
-      // rs12
-      rd_ce <= 1;
-      rd <= inst[`POS_RD];
-      op <= `ALU_ADD;
+  // task decode_jal_type;
+  //   begin
+  //     ex_unit <= `EX_ALU_UNIT;
+  //     imm <= $signed({inst[31:31], inst[19:12], inst[20:20], inst[30:21]}) << 1;
+  //     imm_tag <= 1;
+  //     pc_tag <= 1;
+  //     store_pc_tag <= 1;
+  //     ce[1] <= 0;
+  //     ce[2] <= 0;
+  //     // rs12
+  //     rd_ce <= 1;
+  //     rd <= inst[`POS_RD];
+  //     op <= `ALU_ADD;
+  //
+  //     stall <= 1;
+  //   end
+  // endtask
 
-      stall <= 1;
-    end
-  endtask
-
+/*
   task decode_jalr_type;
     begin
       ex_unit <= `EX_ALU_UNIT;
@@ -178,6 +174,7 @@ module decoder (
     control.rs_en[2] <= 0;
     control.imm      <= 0;
     control.imm_en   <= 0;
+    control.pc_en    <= 0;
 
     decoder_reg_file.rs[1] <= 0;
     decoder_reg_file.rs[2] <= 0;
