@@ -125,10 +125,14 @@ module alu (
   // end
 
   always @ (negedge clk) begin
-    insert_inst;
-    update_val;
-    try_issue;
-    result = alu_calc(calc_type, calc_src[1], calc_src[2]);
+    if (rst) begin
+      ;
+    end else begin
+      insert_inst;
+      update_val;
+      try_issue;
+      result = alu_calc(calc_type, calc_src[1], calc_src[2]);
+    end
   end
 
   function [`COMMON_WIDTH] alu_calc;
@@ -158,16 +162,5 @@ module alu (
     end
   endfunction
 
-  // calculate
-  // TODO: clk
-  // always @ (*) begin
-  //   busy = 1;
-  //   $display("calc: %d, %h, %h", calc_type, calc_src[1], calc_src[2]);
-  //   result = alu_calc(calc_type, calc_src[1], calc_src[2]);
-  //   $display(" = %d", result);
-  //   busy = 0;
-  // end
-
-  // calculate
 
 endmodule : alu

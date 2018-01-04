@@ -1,6 +1,6 @@
 `include "common_def.h"
 
-interface idex_forwarder_inf;
+interface forwarder_reserv_inf;
   bit [`INST_TAG_WIDTH] target;
   bit [`COMMON_WIDTH]   val;
   bit [`INST_TAG_WIDTH] tag;
@@ -21,8 +21,8 @@ module forwarder (
   input clk,
   input rst,
 
-  idex_forwarder_inf.ex   new_entry,
-  rob_broadcast_inf.snoop rob_info
+  forwarder_reserv_inf.ex  new_entry,
+  rob_broadcast_inf.snoop  rob_info,
 
   output reg[`INST_TAG_WIDTH] target,
   output reg[`COMMON_WIDTH]   result
@@ -33,7 +33,7 @@ module forwarder (
   task insert_inst;
     integer i, pos;
     begin
-      if (new_entry.target != `TAG_INVALID) begin
+      if (new_entry.target !== `TAG_INVALID) begin
         pos = -1;
         for (i = 0; i < `RES_ENTRY_NUM; i = i + 1)
           pos = (entries[i].valid) ? pos : i;
@@ -60,21 +60,31 @@ module forwarder (
     begin
       pos = -1;
       for (i = 0; i < `RES_ENTRY_NUM; i = i + 1)
-        if (entries[i].valid && entries[i].tag[1] == `TAG_INVALID)
+        if (entries[i].valid && entries[i].tag == `TAG_INVALID)
           pos = i;
 
       if (pos !== -1) begin
         target = entries[pos].target;
-        result = entries[pos].result;
+        result = entries[pos].val;
         entries[pos].valid = 0;
       end
     end
   endtask
 
   always @ (negedge clk) begin
-    insert_inst; // TODO: move to posedge
-    update_val;
-    try_issue;
+    if (!rst) begin
+      insert_inst; // TODO: move to posedge
+      update_val;
+      try_issue;
+    end
+  end
+
+  integer ri;
+  always @ (posedge rst) begin
+    target <= `TAG_INVALID;
+    result <= 0;
+    for (ri = 0; ri < `RES_ENTRY_NUM; ri = ri + 1)
+      entries[ri].valid <= 0;
   end
 
   task update_val_x;

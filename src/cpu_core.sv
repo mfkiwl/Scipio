@@ -14,8 +14,8 @@ module cpu_core (
   end
 
   // rob_inf rob_info();
-  rob_inf bc();
-  rob_inf wb();
+  // rob_inf bc();
+  // rob_inf wb();
   //////////////////////
 
   /////////// Interface //////////
@@ -25,9 +25,12 @@ module cpu_core (
     id_idex_inf  id_idex();
     idex_ex_inf  idex_ex();
     // EX -> EXWB
-      ex_exwb_alu_inf  ex_exwb_alu();
+      ex_exwb_alu_inf       ex_exwb_alu();
+      ex_exwb_forwarder_inf ex_exwb_forwarder();
     // EXWB_WB
-      exwb_rob_alu_inf exwb_wb_alu();
+      exwb_rob_tar_res_inf exwb_wb_alu();
+      exwb_rob_tar_res_inf exwb_wb_forwarder();
+
 
     wb_id_inf   wb_id();
   // boradcast & snoop
@@ -52,8 +55,6 @@ module cpu_core (
     .from_if(if_ifid),
     .to_id(ifid_id)
     );
-
-  rob_inf id_rob();
 
   id ID(
     .clk(clk),
@@ -81,7 +82,8 @@ module cpu_core (
 
     .in(idex_ex),
     .rob_info(rob_broadcast),
-    .alu_out(ex_exwb_alu)
+    .alu_out(ex_exwb_alu),
+    .forwarder_out(ex_exwb_forwarder)
     );
 
   exwb EXWB(
@@ -89,7 +91,10 @@ module cpu_core (
     .rst(rst),
 
     .alu_in(ex_exwb_alu),
-    .alu_out(exwb_wb_alu)
+    .alu_out(exwb_wb_alu),
+
+    .forwarder_in(ex_exwb_forwarder),
+    .forwarder_out(exwb_wb_forwarder)
     );
 
   rob ROB (
@@ -97,10 +102,8 @@ module cpu_core (
     .rst(rst),
 
     .alu_in(exwb_wb_alu),
+    .forwarder_in(exwb_wb_forwarder),
 
-    // .rob_id(id_rob),
-    // .broadcast(bc),
-    // .to_wb(wb)
     .broadcast(rob_broadcast),
     .pos(rob_pos),
     .to_wb(wb_id)

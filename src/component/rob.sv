@@ -71,7 +71,7 @@ interface rob_inf;
   modport wb    (input  wb_reg, wb_data, wb_tag);
 endinterface
 */
-interface exwb_rob_alu_inf;
+interface exwb_rob_tar_res_inf;
   bit [`COMMON_WIDTH]   result;
   bit [`INST_TAG_WIDTH] target;
 
@@ -95,7 +95,8 @@ module rob (
 
   // TODO:
   // ex_wb_alu_inf.wb  alu_in,
-  exwb_rob_alu_inf.rob alu_in,
+  exwb_rob_tar_res_inf.rob alu_in,
+  exwb_rob_tar_res_inf.rob forwarder_in,
 
   // rob_inf.rob_id     rob_id,
   // rob_inf.broadcast  broadcast,
@@ -128,10 +129,15 @@ module rob (
 
   task push;
     begin
-      if (alu_in.target == `TAG_INVALID)
-        return;
-      entries[alu_in.target].ready = 1;
-      entries[alu_in.target].val = alu_in.result;
+      if (alu_in.target !== `TAG_INVALID) begin
+        entries[alu_in.target].ready = 1;
+        entries[alu_in.target].val = alu_in.result;
+      end
+
+      if (forwarder_in.target !== `TAG_INVALID) begin
+        entries[forwarder_in.target].ready = 1;
+        entries[forwarder_in.target].val = forwarder_in.result;
+      end
     end
   endtask
 

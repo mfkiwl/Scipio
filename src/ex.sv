@@ -22,6 +22,15 @@ interface ex_exwb_alu_inf;
   modport ex   (output target, result);
 endinterface
 
+interface ex_exwb_forwarder_inf;
+  logic [`INST_TAG_WIDTH] target;
+  bit   [`COMMON_WIDTH] result;
+
+  modport exwb (input  target, result);
+  modport ex   (output target, result);
+endinterface
+
+
 module ex (
   input rst,
   input clk,
@@ -32,6 +41,7 @@ module ex (
 
   // to
   ex_exwb_alu_inf.ex       alu_out,
+  ex_exwb_forwarder_inf.ex forwarder_out,
 
   output full [0:`EX_UNIT_NUM-1]
   );
@@ -52,6 +62,21 @@ module ex (
     .rob_info(rob_info),
     .target(alu_out.target),
     .result(alu_out.result)
+    );
+
+  forwarder_reserv_inf forwarder_inf();
+    assign forwarder_inf.target = (in.unit == `EX_FORWARDER_UNIT) ? in.target : `TAG_INVALID;
+    assign forwarder_inf.val = in.val[2];
+    assign forwarder_inf.tag = in.tag[2];
+  forwarder ex_forwarder(
+    .rst(rst),
+    .clk(clk),
+
+    .new_entry(forwarder_inf),
+    .rob_info(rob_info),
+
+    .target(forwarder_out.target),
+    .result(forwarder_out.result)
     );
 
 endmodule : ex

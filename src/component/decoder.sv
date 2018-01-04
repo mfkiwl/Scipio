@@ -18,7 +18,7 @@ module decoder (
       case (inst[`POS_OPCODE])
         `R_TYPE_OPCODE: decode_rtype;
         `I_TYPE_OPCODE: decode_itype;
-        // `LUI_OPCODE:    decode_lui_type;
+        `LUI_OPCODE:    decode_lui_type;
         // `AUIPC_OPCPDE:  decode_auipc_type;
         // `JAL_OPCODE:    decode_jal_type;
         // `JALR_OPCODE:   decode_jalr_type;
@@ -86,12 +86,12 @@ module decoder (
   endtask
 
   task decode_lui_type;
-    ex_unit <= `EX_FORWARDER_UNIT;
-    imm[`POS_IMM_UI] <= inst[`POS_IMM_UI];
-    imm[11:0] <= 0;
-    imm_tag <= 1;
-    rd_ce <= 1;
-    rd <= inst[`POS_RD];
+    control.ex_unit <= `EX_FORWARDER_UNIT;
+    control.imm[`POS_IMM_UI] <= inst[`POS_IMM_UI];
+    control.imm[11:0] <= 0;
+    control.imm_en <= 1;
+    decoder_reg_file.rd_en <= 1;
+    decoder_reg_file.rd <= inst[`POS_RD];
   endtask
 
 /*
