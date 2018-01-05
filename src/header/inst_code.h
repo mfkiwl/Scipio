@@ -34,7 +34,13 @@
 `define HALF_FUNCT3  3'b001
 `define WORD_FUNCT3  3'b010
 
-// J
+// branch
+`define BEQ_FUNCT3   3'b000
+`define BNE_FUNCT3   3'b001
+`define BLT_FUNCT3   3'b100
+`define BGE_FUNCT3   3'b101
+`define BLTU_FUNCT3  3'b110
+`define BGEU_FUNCT3  3'b111
 
 // decoding
 `define POS_OPCODE 6:0

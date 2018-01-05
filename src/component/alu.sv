@@ -48,7 +48,7 @@ module alu (
 
   task update_val_x;
     input [`RES_ENTRY_NUM_WIDTH] pos;
-    integer i, flag;
+    integer i;
     begin
       for (i = 0; i < `ROB_ENTRY_NUM; i = i + 1)
         if (rob_info.valid[i] && rob_info.ready[i]) begin
@@ -107,6 +107,8 @@ module alu (
         calc_src[1] = entries[pos].val[1];
         calc_src[2] = entries[pos].val[2];
         entries[pos].valid = 0;
+      end else begin
+        target = `TAG_INVALID;
       end
     end
   endtask

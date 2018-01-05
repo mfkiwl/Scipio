@@ -120,7 +120,6 @@ module decoder (
     end
   endtask
 
-
   task decode_jalr_type;
     begin
       control.ex_unit <= `EX_JUMP_UNIT;
@@ -136,7 +135,26 @@ module decoder (
     end
   endtask
 
-
+  task decode_branch_type;
+    begin
+      control.ex_unit <= `EX_BRANCH_UNIT;
+      control.rs_en[1] <= 1;
+      control.rs_en[2] <= 1;
+      decoder_reg_file.rs[1] <= inst[`POS_RS1];
+      decoder_reg_file.rs[2] <= inst[`POS_RS2];
+      control.offset <= $signed({inst[31], inst[7], inst[30:25], inst[11:8]});
+      case (inst[`POS_FUNCT3])
+        `BEQ_FUNCT3: control.op <= `OP_BEQ;
+        `BNE_FUNCT3: control.op <= `OP_BNE;
+        `BLT_FUNCT3: control.op <= `OP_BLT;
+        `BGE_FUNCT3: control.op <= `OP_BGE;
+        `BLTU_FUNCT3: control.op <= `OP_BLTU;
+        `BGEU_FUNCT3: control.op <= `OP_BGEU;
+        default: ;
+      endcase
+      control.stall <= 1;
+    end
+  endtask
 
   task decode_empty_type;
     clean_output;

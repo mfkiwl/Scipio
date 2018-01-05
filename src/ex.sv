@@ -12,8 +12,10 @@ interface idex_ex_inf;
 
   bit [`COMMON_WIDTH] pc_addr;
 
-  modport ex  (input  unit, target, val, tag, op, ce, pc_addr);
-  modport idex(output unit, target, val, tag, op, ce, pc_addr);
+  bit [`COMMON_WIDTH] offset;
+
+  modport ex  (input  unit, target, val, tag, op, ce, pc_addr, offset);
+  modport idex(output unit, target, val, tag, op, ce, pc_addr, offset);
 endinterface
 
 interface ex_exwb_alu_inf;
@@ -33,12 +35,21 @@ interface ex_exwb_forwarder_inf;
 endinterface
 
 interface ex_exwb_jump_inf;
-logic [`INST_TAG_WIDTH] target;
-bit   [`COMMON_WIDTH]   ori_pc;
-bit   [`COMMON_WIDTH]   next_pc;
+  logic [`INST_TAG_WIDTH] target;
+  bit   [`COMMON_WIDTH]   ori_pc;
+  bit   [`COMMON_WIDTH]   next_pc;
 
-modport exwb (input  target, ori_pc, next_pc);
-modport ex   (output target, ori_pc, next_pc);
+  modport exwb (input  target, ori_pc, next_pc);
+  modport ex   (output target, ori_pc, next_pc);
+endinterface
+
+interface ex_exwb_branch_inf;
+  logic [`INST_TAG_WIDTH] target;
+  bit   [`COMMON_WIDTH]   next_pc;
+  bit                     cmp_res;
+
+  modport exwb (input  target, next_pc, cmp_res);
+  modport ex   (output target, next_pc, cmp_res);
 endinterface
 
 module ex (
@@ -53,6 +64,7 @@ module ex (
   ex_exwb_alu_inf.ex       alu_out,
   ex_exwb_forwarder_inf.ex forwarder_out,
   ex_exwb_jump_inf.ex      jump_out,
+  ex_exwb_branch_inf.ex    branch_out,
 
   output full [0:`EX_UNIT_NUM-1]
   );
@@ -103,6 +115,24 @@ module ex (
     .target(jump_out.target),
     .next_pc(jump_out.next_pc),
     .ori_pc(jump_out.ori_pc)
+    );
+
+  branch_unit_reserv_inf branch_unit_inf();
+    assign branch_unit_inf.target = (in.unit == `EX_BRANCH_UNIT) ? in.target : `TAG_INVALID;
+    assign branch_unit_inf.val = in.val;
+    assign branch_unit_inf.tag = in.tag;
+    assign branch_unit_inf.pc_addr = in.pc_addr;
+    assign branch_unit_inf.offset  = in.offset;
+    assign branch_unit_inf.op = in.op;
+  branch_unit ex_branch_unit(
+    .rst(rst),
+    .clk(clk),
+    .new_entry(branch_unit_inf),
+    .rob_info(rob_info),
+
+    .target(branch_out.target),
+    .cmp_res(branch_out.cmp_res),
+    .next_pc(branch_out.next_pc)
     );
 
 endmodule : ex

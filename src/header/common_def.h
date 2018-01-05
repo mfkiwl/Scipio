@@ -16,6 +16,7 @@
 `define EX_FORWARDER_UNIT 3'd2
 `define EX_MEM_UNIT       3'd3
 `define EX_JUMP_UNIT      3'd4
+`define EX_BRANCH_UNIT    3'd5
 
 `define INST_OP_WIDTH   5:0
 `define INST_TAG_WIDTH  3:0

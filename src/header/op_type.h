@@ -1,4 +1,4 @@
-`define OP_TYPE_WIDTH 4:0
+`define OP_TYPE_WIDTH 7:0
 
 `define OP_NOP		0
 `define OP_ADD		1
@@ -26,3 +26,11 @@
 `define OP_SLTU	  23
 
 `define OP_JAL    24
+`define OP_JALR   25
+
+`define OP_BEQ    26
+`define OP_BNE    27
+`define OP_BLT    28
+`define OP_BGE    29
+`define OP_BLTU   30
+`define OP_BGEU   31

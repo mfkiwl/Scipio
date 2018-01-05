@@ -19,8 +19,10 @@ interface id_idex_inf;
 
   bit [`COMMON_WIDTH]   pc_addr;
 
-  modport id  (output ex_unit, op, tag, val, target, pc_addr);
-  modport idex (input ex_unit, op, tag, val, target, pc_addr);
+  bit [`COMMON_WIDTH]   offset; // branch
+
+  modport id  (output ex_unit, op, tag, val, target, pc_addr, offset);
+  modport idex (input ex_unit, op, tag, val, target, pc_addr, offset);
 endinterface
 
 module id (
@@ -154,10 +156,12 @@ interface decoder_control_inf;
   bit                 pc_en;
   bit                 stall;
 
+  bit [`COMMON_WIDTH] offset;
+
   // imm is the sign extended immediate value
   // imm_en = 1   iff imm is required
   // rs_en[i] = 1 iff rs[i] is required
-  modport decoder (output op, ex_unit, rs_en, imm, imm_en, pc_en, stall);
+  modport decoder (output op, ex_unit, rs_en, imm, imm_en, pc_en, stall, offset);
 endinterface
 
 interface reg_file_result_inf;

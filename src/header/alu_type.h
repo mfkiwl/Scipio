@@ -1,5 +1,5 @@
 // ALU_OPCODE
-`define ALU_TYPE_WIDTH 4:0
+`define ALU_TYPE_WIDTH 7:0
 
 `define ALU_NOP		0
 `define ALU_ADD		1

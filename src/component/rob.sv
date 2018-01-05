@@ -52,6 +52,15 @@ interface exwb_rob_jump_inf;
   modport exwb (output target, ori_pc, next_pc);
 endinterface
 
+interface exwb_rob_branch_inf;
+  bit [`INST_TAG_WIDTH] target;
+  bit [`COMMON_WIDTH]   next_pc;
+  bit                   cmp_res;
+
+  modport rob  (input  target, next_pc, cmp_res);
+  modport exwb (output target, next_pc, cmp_res);
+endinterface
+
 typedef struct {
   bit valid;
   bit ready;
@@ -70,6 +79,7 @@ module rob (
   exwb_rob_tar_res_inf.rob alu_in,
   exwb_rob_tar_res_inf.rob forwarder_in,
   exwb_rob_jump_inf.rob    jump_in,
+  exwb_rob_branch_inf.rob  branch_in,
 
 
   rob_broadcast_inf.rob broadcast,
@@ -116,6 +126,12 @@ module rob (
         entries[jump_in.target].val = jump_in.ori_pc;
         entries[jump_in.target].next_pc = jump_in.next_pc;
       end
+
+      if (branch_in.target !== `TAG_INVALID) begin
+        entries[branch_in.target].ready = 1;
+        entries[branch_in.target].val = $unsigned(branch_in.cmp_res);
+        entries[branch_in.target].next_pc = branch_in.next_pc;
+      end
     end
   endtask
 
@@ -154,6 +170,23 @@ module rob (
     end
   endtask
 
+  task commit_branch;
+    begin
+      if (entries[head].valid && entries[head].ready) begin
+        to_wb.tag = `TAG_INVALID;
+
+        jump_stall.reset = 1;
+        jump_stall.jump_en = entries[head].val[0];
+        jump_stall.jump_addr = entries[head].next_pc;
+
+        entries[head].valid = 0;
+        head = head + 1;
+      end else begin
+        to_wb.tag = `TAG_INVALID;
+      end
+    end
+  endtask
+
   task updata_to_id;
     begin
       pos.full = (tail == head - 1);
@@ -178,10 +211,18 @@ module rob (
     end else begin
       jump_stall.reset = 0;
       jump_stall.jump_en = 0;
-      if (entries[head].op == `OP_JAL)
-        commit_jump;
-      else
-        commit_common;
+      // commit
+      case (entries[head].op)
+        `OP_NOP, `OP_ADD, `OP_ADDU, `OP_SUB, `OP_SUBU, `OP_AND,
+        `OP_AND, `OP_OR,  `OP_NOR,  `OP_XOR, `OP_SLL,  `OP_SRL,
+        `OP_SRA, `OP_ROR, `OP_SEQ,  `OP_SLT, `OP_SLTU:
+          commit_common;
+        `OP_JAL, `OP_JALR:
+          commit_jump;
+        `OP_BEQ, `OP_BNE, `OP_BLT, `OP_BGE, `OP_BLTU, `OP_BGEU:
+          commit_branch;
+        default: ;
+      endcase
       // updata_to_id;
     end
   end

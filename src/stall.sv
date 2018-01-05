@@ -25,6 +25,9 @@ interface jump_stall_inf;
    * it should sent a reseting signal to ID, so that
    * ID will set the "stall" of IF and IFID to 0.
    *
+   * Caution:
+   * When the stall is reset to 0, the data in IFID
+   * is still out of date. So, another NOP is needed.
    */
   modport pif  (input stall,
                 input jump_en, jump_addr);
