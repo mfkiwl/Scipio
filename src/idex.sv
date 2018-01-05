@@ -17,7 +17,9 @@ module idex (
         to_ex.tag <= from_id.tag;
         to_ex.op <= from_id.op;
         to_ex.target <= from_id.target;
-        to_ex.ce <= ~to_ex.ce;
+        to_ex.pc_addr <= from_id.pc_addr;
+
+        to_ex.ce <= ~to_ex.ce; // I forgot why I wrote this line
       end
   end
 

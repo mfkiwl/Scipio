@@ -20,8 +20,8 @@ module decoder (
         `I_TYPE_OPCODE: decode_itype;
         `LUI_OPCODE:    decode_lui_type;
         `AUIPC_OPCPDE:  decode_auipc_type;
-        // `JAL_OPCODE:    decode_jal_type;
-        // `JALR_OPCODE:   decode_jalr_type;
+        `JAL_OPCODE:    decode_jal_type;
+        `JALR_OPCODE:   decode_jalr_type;
         // // TODO: branch
         // `LOAD_OPCODE:   decode_load_type;
         default: decode_empty_type;
@@ -105,63 +105,38 @@ module decoder (
     control.op <= `ALU_ADD;
   endtask
 
-  // task decode_jal_type;
-  //   begin
-  //     ex_unit <= `EX_ALU_UNIT;
-  //     imm <= $signed({inst[31:31], inst[19:12], inst[20:20], inst[30:21]}) << 1;
-  //     imm_tag <= 1;
-  //     pc_tag <= 1;
-  //     store_pc_tag <= 1;
-  //     ce[1] <= 0;
-  //     ce[2] <= 0;
-  //     // rs12
-  //     rd_ce <= 1;
-  //     rd <= inst[`POS_RD];
-  //     op <= `ALU_ADD;
-  //
-  //     stall <= 1;
-  //   end
-  // endtask
-
-/*
-  task decode_jalr_type;
+  task decode_jal_type;
     begin
-      ex_unit <= `EX_ALU_UNIT;
-      imm <= $signed(inst[`POS_IMM]);
-      imm_tag <= 1;
-      pc_tag <= 0;
-      store_pc_tag <= 1;
-      ce[1] <= 1;
-      rs[1] <= inst[`POS_RS1];
-      ce[2] <= 0;
-      // rs[2]
-      rd_ce <= 1;
-      rd <= inst[`POS_RD];
-      op <= `ALU_ADD;
+      control.ex_unit <= `EX_JUMP_UNIT;
+      control.imm <= $signed({inst[31:31], inst[19:12], inst[20:20], inst[30:21], 1'b0});
+      control.imm_en <= 1;
+      control.rs_en[1] <= 1;
+      decoder_reg_file.rs[1] <= 0;
+      decoder_reg_file.rd_en <= 1;
+      decoder_reg_file.rd <= inst[`POS_RD];
+      control.op <= `OP_JAL;
 
-      stall <= 1;
+      control.stall <= 1;
     end
   endtask
 
-  task decode_load_type;
-    ex_unit <= `EX_MEM_UNIT;
-    imm <= $signed(inst[`POS_IMM]);
-    imm_tag <= 1;
-    pc_tag <= 0;
-    store_pc_tag <= 0;
-    ce[1] <= 1;
-    rs[1] <= inst[`POS_RS1];
-    ce[2] <= 0;
-    // rs2
-    rd_ce <= 1;
-    rd <= inst[`POS_RD];
-    load_tag <= 1;
+
+  task decode_jalr_type;
+    begin
+      control.ex_unit <= `EX_JUMP_UNIT;
+      control.imm <= $signed({inst[31:31], inst[19:12], inst[20:20], inst[30:21], 1'b0});
+      control.imm_en <= 1;
+      control.rs_en[1] <= 1;
+      decoder_reg_file.rs[1] <= inst[`POS_RS1];
+      decoder_reg_file.rd_en <= 1;
+      decoder_reg_file.rd <= inst[`POS_RD];
+      control.op <= `OP_JAL;
+
+      control.stall <= 1;
+    end
   endtask
-  // TODO
-  task decode_store_type;
-    ex_unit <= `EX_MEM_UNIT;
-  endtask
-  */
+
+
 
   task decode_empty_type;
     clean_output;
@@ -175,6 +150,7 @@ module decoder (
     control.imm      <= 0;
     control.imm_en   <= 0;
     control.pc_en    <= 0;
+    control.stall    <= 0;
 
     decoder_reg_file.rs[1] <= 0;
     decoder_reg_file.rs[2] <= 0;

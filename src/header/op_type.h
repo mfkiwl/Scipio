@@ -24,3 +24,5 @@
 `define OP_SEQ		21
 `define OP_SLT		22
 `define OP_SLTU	  23
+
+`define OP_JAL    24

@@ -10,8 +10,10 @@ interface idex_ex_inf;
   logic [`INST_TAG_WIDTH] tag [1:2];
   bit [`OP_TYPE_WIDTH]  op;
 
-  modport ex  (input  unit, target, val, tag, op, ce);
-  modport idex(output unit, target, val, tag, op, ce);
+  bit [`COMMON_WIDTH] pc_addr;
+
+  modport ex  (input  unit, target, val, tag, op, ce, pc_addr);
+  modport idex(output unit, target, val, tag, op, ce, pc_addr);
 endinterface
 
 interface ex_exwb_alu_inf;
@@ -30,6 +32,14 @@ interface ex_exwb_forwarder_inf;
   modport ex   (output target, result);
 endinterface
 
+interface ex_exwb_jump_inf;
+logic [`INST_TAG_WIDTH] target;
+bit   [`COMMON_WIDTH]   ori_pc;
+bit   [`COMMON_WIDTH]   next_pc;
+
+modport exwb (input  target, ori_pc, next_pc);
+modport ex   (output target, ori_pc, next_pc);
+endinterface
 
 module ex (
   input rst,
@@ -42,6 +52,7 @@ module ex (
   // to
   ex_exwb_alu_inf.ex       alu_out,
   ex_exwb_forwarder_inf.ex forwarder_out,
+  ex_exwb_jump_inf.ex      jump_out,
 
   output full [0:`EX_UNIT_NUM-1]
   );
@@ -53,7 +64,6 @@ module ex (
     assign alu_inf.tag = in.tag;
     assign alu_inf.op  = in.op;
     assign alu_inf.ce  = in.ce;
-
   alu ex_alu(
     .rst(rst),
     .clk(clk),
@@ -77,6 +87,22 @@ module ex (
 
     .target(forwarder_out.target),
     .result(forwarder_out.result)
+    );
+
+  jump_unit_reserv_inf jump_unit_inf();
+    assign jump_unit_inf.target = (in.unit == `EX_JUMP_UNIT) ? in.target : `TAG_INVALID;
+    assign jump_unit_inf.val = in.val;
+    assign jump_unit_inf.tag = in.tag[2];
+    assign jump_unit_inf.pc_addr = in.pc_addr;
+  jump_unit ex_jump_unit(
+    .rst(rst),
+    .clk(clk),
+    .new_entry(jump_unit_inf),
+    .rob_info(rob_info),
+
+    .target(jump_out.target),
+    .next_pc(jump_out.next_pc),
+    .ori_pc(jump_out.ori_pc)
     );
 
 endmodule : ex

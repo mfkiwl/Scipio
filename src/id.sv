@@ -17,8 +17,10 @@ interface id_idex_inf;
 
   bit [`INST_TAG_WIDTH] target; // the position in ROB
 
-  modport id  (output ex_unit, op, tag, val, target);
-  modport idex (input ex_unit, op, tag, val, target);
+  bit [`COMMON_WIDTH]   pc_addr;
+
+  modport id  (output ex_unit, op, tag, val, target, pc_addr);
+  modport idex (input ex_unit, op, tag, val, target, pc_addr);
 endinterface
 
 module id (
@@ -31,23 +33,11 @@ module id (
   wb_id_inf.id   wb,
 
   input reservation_full [0:`EX_UNIT_NUM-1],
-  output reg stall_if,
+
+  jump_stall_inf.id jump_stall,
 
   id_idex_inf.id to_idex
   );
-
-  // stall
-  // always @ ( * ) begin
-  //   if (rob_full || (reservation_full[to_idex.ex_unit])) begin
-  //     stall_if <= 1;
-  //     to_idex.target <= 0;
-  //   end else begin
-  //     stall_if <= 0;
-  //     to_idex.target <= target;
-  //   end
-  // end
-
-  //////////////////////
   decoder_control_inf  decoder_control();
   decoder_reg_file_inf decoder_reg_file();
   reg_file_result_inf  reg_file_result();
@@ -76,8 +66,17 @@ module id (
 
   /// control & forward
   // forward
-  assign to_idex.op      = decoder_control.op;
-  assign to_idex.ex_unit = decoder_control.ex_unit;
+  assign to_idex.op       = decoder_control.op;
+  assign to_idex.ex_unit  = decoder_control.ex_unit;
+  assign to_idex.pc_addr  = from_ifid.pc_addr;
+
+  // stall
+  always @ ( * ) begin
+    if (decoder_control.stall)
+      jump_stall.stall = 1;
+    if (jump_stall.reset)
+      jump_stall.stall = 0;
+  end
 
   // MUX (tag, val)
   always @ ( * ) begin
@@ -123,6 +122,9 @@ module id (
     end
   end
 
+  // reset
+  always @ (posedge rst) jump_stall.stall = 0;
+
 endmodule // id
 
 interface decoder_reg_file_inf;
@@ -150,11 +152,12 @@ interface decoder_control_inf;
   bit                 imm_en;
   // TODO: pc related tags
   bit                 pc_en;
+  bit                 stall;
 
   // imm is the sign extended immediate value
   // imm_en = 1   iff imm is required
   // rs_en[i] = 1 iff rs[i] is required
-  modport decoder (output op, ex_unit, rs_en, imm, imm_en, pc_en);
+  modport decoder (output op, ex_unit, rs_en, imm, imm_en, pc_en, stall);
 endinterface
 
 interface reg_file_result_inf;

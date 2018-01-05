@@ -35,42 +35,6 @@ interface wb_id_inf;
   modport id  (input  rd, data, tag);
 endinterface
 
-/*
-interface rob_inf;
-  bit ce;
-  bit valid [0:`ROB_ENTRY_NUM-1];
-  bit ready [0:`ROB_ENTRY_NUM-1];
-  bit [`COMMON_WIDTH] val [0:`ROB_ENTRY_NUM-1];
-  bit [`INST_TAG_WIDTH] tag [0:`ROB_ENTRY_NUM-1];
-
-  bit full;
-  bit [`INST_TAG_WIDTH] avail_tag;
-  bit tag_ce;
-  bit tag_token;
-  bit [`REG_NUM_WIDTH] rd;
-  bit [`OP_TYPE_WIDTH] op;
-
-  // write back
-  bit empty;
-  bit [`REG_NUM_WIDTH]  wb_reg;
-  bit [`COMMON_WIDTH]   wb_data;
-  bit [`INST_TAG_WIDTH] wb_tag;
-  // TODO: mem, pc
-
-  modport snoop (input valid, ready, val, tag, ce);
-  modport broadcast(output valid, ready, val, tag, ce);
-
-  modport rob_id(input  tag_token, tag_ce,
-                        rd, op,
-                 output full, avail_tag);
-  modport id_rob(output tag_token, tag_ce,
-                        rd, op,
-                 input  full, avail_tag);
-
-  modport to_wb (output wb_reg, wb_data, wb_tag);
-  modport wb    (input  wb_reg, wb_data, wb_tag);
-endinterface
-*/
 interface exwb_rob_tar_res_inf;
   bit [`COMMON_WIDTH]   result;
   bit [`INST_TAG_WIDTH] target;
@@ -79,11 +43,21 @@ interface exwb_rob_tar_res_inf;
   modport exwb (output result, target);
 endinterface
 
+interface exwb_rob_jump_inf;
+  bit [`INST_TAG_WIDTH] target;
+  bit [`COMMON_WIDTH]   ori_pc;
+  bit [`COMMON_WIDTH]   next_pc;
+
+  modport rob  (input  target, ori_pc, next_pc);
+  modport exwb (output target, ori_pc, next_pc);
+endinterface
+
 typedef struct {
   bit valid;
   bit ready;
   bit [`REG_NUM_WIDTH]  rd;
-  bit [`COMMON_WIDTH]   val;
+  bit [`COMMON_WIDTH]   val; // / ori_pc
+  bit [`COMMON_WIDTH]   next_pc;
   bit [`INST_TAG_WIDTH] tag; // == pos in rob
 
   bit [`OP_TYPE_WIDTH] op;
@@ -93,18 +67,16 @@ module rob (
   input clk,
   input rst,
 
-  // TODO:
-  // ex_wb_alu_inf.wb  alu_in,
   exwb_rob_tar_res_inf.rob alu_in,
   exwb_rob_tar_res_inf.rob forwarder_in,
+  exwb_rob_jump_inf.rob    jump_in,
 
-  // rob_inf.rob_id     rob_id,
-  // rob_inf.broadcast  broadcast,
-  // rob_inf.to_wb      to_wb
 
   rob_broadcast_inf.rob broadcast,
   rob_pos_inf.rob       pos,
-  wb_id_inf.rob         to_wb
+  wb_id_inf.rob         to_wb,
+
+  jump_stall_inf.wb     jump_stall
   );
 
   reg [`ROB_ENTRY_NUM_WIDTH] head, tail;
@@ -138,10 +110,16 @@ module rob (
         entries[forwarder_in.target].ready = 1;
         entries[forwarder_in.target].val = forwarder_in.result;
       end
+
+      if (jump_in.target !== `TAG_INVALID) begin
+        entries[jump_in.target].ready = 1;
+        entries[jump_in.target].val = jump_in.ori_pc;
+        entries[jump_in.target].next_pc = jump_in.next_pc;
+      end
     end
   endtask
 
-  task pop;
+  task commit_common;
     begin
       if (entries[head].valid && entries[head].ready) begin
         to_wb.tag = entries[head].tag;
@@ -152,6 +130,27 @@ module rob (
       end else begin
         to_wb.tag = `TAG_INVALID;
       end
+    end
+  endtask
+
+  // TODO: unify commit
+  task commit_jump;
+    begin
+    if (entries[head].valid && entries[head].ready) begin
+      to_wb.tag = entries[head].tag;
+      to_wb.data = entries[head].val;
+      to_wb.rd = entries[head].rd;
+
+      // pc & stall
+      jump_stall.reset = 1;
+      jump_stall.jump_en = 1;
+      jump_stall.jump_addr = entries[head].next_pc;
+
+      entries[head].valid = 0;
+      head = head + 1;
+    end else begin
+      to_wb.tag = `TAG_INVALID;
+    end
     end
   endtask
 
@@ -168,7 +167,7 @@ module rob (
     end else begin
       push;
       broadcast_to_ex;
-      // pop;
+      // commit;
       updata_to_id;
     end
   end
@@ -177,7 +176,12 @@ module rob (
     if (rst) begin
       reset;
     end else begin
-      pop;
+      jump_stall.reset = 0;
+      jump_stall.jump_en = 0;
+      if (entries[head].op == `OP_JAL)
+        commit_jump;
+      else
+        commit_common;
       // updata_to_id;
     end
   end

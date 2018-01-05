@@ -5,13 +5,6 @@ module cpu_core (
   input wire rst
   );
 
-  // test
-  reg jump_ce;
-  reg stall;
-  always @ (posedge rst) begin
-    jump_ce = 0;
-    stall = 0;
-  end
 
   // rob_inf rob_info();
   // rob_inf bc();
@@ -27,23 +20,26 @@ module cpu_core (
     // EX -> EXWB
       ex_exwb_alu_inf       ex_exwb_alu();
       ex_exwb_forwarder_inf ex_exwb_forwarder();
+      ex_exwb_jump_inf      ex_exwb_jump();
     // EXWB_WB
       exwb_rob_tar_res_inf exwb_wb_alu();
       exwb_rob_tar_res_inf exwb_wb_forwarder();
-
+      exwb_rob_jump_inf    exwb_wb_jump();
 
     wb_id_inf   wb_id();
   // boradcast & snoop
     rob_broadcast_inf rob_broadcast();
   // tag
     rob_pos_inf rob_pos();
+  // stall
+    jump_stall_inf jump_stall();
   ////////////////////////////////
 
   pif IF (
     .clk(clk),
     .rst(rst),
-    .jump_ce(jump_ce),
-    .stall(stall),
+
+    .jump_stall(jump_stall),
 
     .to_idif(if_ifid)
     );
@@ -51,7 +47,7 @@ module cpu_core (
   ifid IFID(
     .rst(rst),
     .clk(clk),
-    .stall(stall),
+    .jump_stall(jump_stall),
     .from_if(if_ifid),
     .to_id(ifid_id)
     );
@@ -62,7 +58,7 @@ module cpu_core (
 
     .from_ifid(ifid_id),
 
-    .stall_if(id_out_stall),
+    .jump_stall(jump_stall),
 
     .rob_pos(rob_pos),
     .wb(wb_id),
@@ -83,7 +79,8 @@ module cpu_core (
     .in(idex_ex),
     .rob_info(rob_broadcast),
     .alu_out(ex_exwb_alu),
-    .forwarder_out(ex_exwb_forwarder)
+    .forwarder_out(ex_exwb_forwarder),
+    .jump_out(ex_exwb_jump)
     );
 
   exwb EXWB(
@@ -94,7 +91,10 @@ module cpu_core (
     .alu_out(exwb_wb_alu),
 
     .forwarder_in(ex_exwb_forwarder),
-    .forwarder_out(exwb_wb_forwarder)
+    .forwarder_out(exwb_wb_forwarder),
+
+    .jump_in(ex_exwb_jump),
+    .jump_out(exwb_wb_jump)
     );
 
   rob ROB (
@@ -103,10 +103,13 @@ module cpu_core (
 
     .alu_in(exwb_wb_alu),
     .forwarder_in(exwb_wb_forwarder),
+    .jump_in(exwb_wb_jump),
 
     .broadcast(rob_broadcast),
     .pos(rob_pos),
-    .to_wb(wb_id)
+    .to_wb(wb_id),
+
+    .jump_stall(jump_stall)
     );
 
 endmodule : cpu_core

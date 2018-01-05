@@ -4,21 +4,28 @@ module ifid (
   input clk,
   input rst,
 
-  input stall,
+  jump_stall_inf.ifid jump_stall,
 
   pif_ifid_inf.ifid  from_if,
 
   ifid_id_inf.ifid to_id
   );
 
+  reg stall_prev;
+
   always @ (posedge clk or posedge rst) begin
-    if (rst) begin
+    if (rst || jump_stall.stall || stall_prev) begin
       to_id.inst    <= 0;
       to_id.pc_addr <= 0;
-    end else if (!stall) begin
+      stall_prev <= 0;
+    end else begin
       to_id.inst <= from_if.inst;
       to_id.pc_addr <= from_if.pc_addr;
     end
+  end
+
+  always @ (negedge jump_stall.stall) begin
+    stall_prev = 1;
   end
 
 endmodule // ifid

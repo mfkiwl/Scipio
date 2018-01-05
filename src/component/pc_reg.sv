@@ -3,7 +3,6 @@
 module pc_reg (
   input clk,
   input rst,
-  // input stall,
 
   input [`COMMON_WIDTH] next_pc,
 
@@ -14,15 +13,11 @@ module pc_reg (
   always @ ( * ) pc = next_pc;
 
   always @ (posedge clk or posedge rst) begin
-    // if (stall) begin
-    //   pc_addr <= pc - 4;
-    // end else begin
       if (rst) begin
         pc_addr <= -4;
         pc <= 0;
       end else begin
         pc_addr <= pc;
-      // end
     end
   end
 
