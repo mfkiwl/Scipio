@@ -93,7 +93,7 @@ module id (
       to_idex.tag[1] <= `TAG_INVALID;
     end else begin
       if (decoder_control.rs_en[1]) begin
-        if (reg_file_result.tag[1] == wb.tag) begin
+        if (wb.tag != `TAG_INVALID && reg_file_result.tag[1] == wb.tag && wb.rd) begin
           to_idex.val[1] <= wb.data;
           to_idex.tag[1] <= `TAG_INVALID;
         end else begin
@@ -108,7 +108,7 @@ module id (
       to_idex.tag[2] <= `TAG_INVALID;
     end else begin
       if (decoder_control.rs_en[2]) begin
-        if (reg_file_result.tag[2] == wb.tag) begin
+        if (wb.tag != `TAG_INVALID && reg_file_result.tag[2] == wb.tag && wb.rd) begin
           to_idex.val[2] <= wb.data;
           to_idex.tag[2] <= `TAG_INVALID;
         end else begin

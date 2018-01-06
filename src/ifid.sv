@@ -13,7 +13,7 @@ module ifid (
   );
 
   reg stall_prev;
-  reg stall = jump_stall.stall || full_stall.stall;
+  wire stall = jump_stall.stall || full_stall.stall;
 
   always @ (posedge clk or posedge rst) begin
     if (rst || jump_stall.stall || stall_prev) begin

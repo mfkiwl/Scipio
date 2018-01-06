@@ -34,7 +34,7 @@ module reg_file (
 
   // write back
   always @ ( * ) begin
-    if (wb.tag == regs[wb.rd].tag) begin
+    if (wb.tag == regs[wb.rd].tag /*&& wb.tag*/) begin
       regs[wb.rd].data = wb.data;
       regs[wb.rd].tag  = `TAG_INVALID;
     end

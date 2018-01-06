@@ -23,8 +23,7 @@ module pif (
 
   assign to_idif.pc_addr = pc_out_pc_addr;
 
-  reg stall;
-  assign stall = jump_stall.stall || full_stall.stall;
+  wire stall = jump_stall.stall || full_stall.stall;
 
   always @ ( * ) begin
     if (stall)
