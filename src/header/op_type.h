@@ -34,3 +34,7 @@
 `define OP_BGE    29
 `define OP_BLTU   30
 `define OP_BGEU   31
+
+`define OP_STORE  32
+`define OP_LOAD   33
+`define OP_LOADU  34

@@ -22,15 +22,18 @@ module cpu_core (
       ex_exwb_forwarder_inf ex_exwb_forwarder();
       ex_exwb_jump_inf      ex_exwb_jump();
       ex_exwb_branch_inf    ex_exwb_branch();
+      ex_exwb_mem_inf       ex_exwb_mem();
     // EXWB_WB
       exwb_rob_tar_res_inf exwb_wb_alu();
       exwb_rob_tar_res_inf exwb_wb_forwarder();
       exwb_rob_jump_inf    exwb_wb_jump();
       exwb_rob_branch_inf  exwb_wb_branch();
+      exwb_rob_tar_res_inf exwb_wb_mem();
 
     wb_id_inf   wb_id();
   // boradcast & snoop
     rob_broadcast_inf rob_broadcast();
+    rob_mem_inf       rob_head_info();
   // tag
     rob_pos_inf rob_pos();
   // stall
@@ -80,11 +83,13 @@ module cpu_core (
 
     .in(idex_ex),
     .rob_info(rob_broadcast),
+    .rob_head_info(rob_head_info),
 
     .alu_out(ex_exwb_alu),
     .forwarder_out(ex_exwb_forwarder),
     .jump_out(ex_exwb_jump),
-    .branch_out(ex_exwb_branch)
+    .branch_out(ex_exwb_branch),
+    .mem_out(ex_exwb_mem)
     );
 
   exwb EXWB(
@@ -101,7 +106,10 @@ module cpu_core (
     .jump_out(exwb_wb_jump),
 
     .branch_in(ex_exwb_branch),
-    .branch_out(exwb_wb_branch)
+    .branch_out(exwb_wb_branch),
+
+    .mem_in(ex_exwb_mem),
+    .mem_out(exwb_wb_mem)
     );
 
   rob ROB (
@@ -112,10 +120,12 @@ module cpu_core (
     .forwarder_in(exwb_wb_forwarder),
     .jump_in(exwb_wb_jump),
     .branch_in(exwb_wb_branch),
+    .mem_in(exwb_wb_mem),
 
     .broadcast(rob_broadcast),
     .pos(rob_pos),
     .to_wb(wb_id),
+    .to_mem(rob_head_info),
 
     .jump_stall(jump_stall)
     );

@@ -35,31 +35,14 @@ interface wb_id_inf;
   modport id  (input  rd, data, tag);
 endinterface
 
-interface exwb_rob_tar_res_inf;
-  bit [`COMMON_WIDTH]   result;
-  bit [`INST_TAG_WIDTH] target;
+interface rob_mem_inf;
+  bit [`ROB_ENTRY_NUM_WIDTH] head;
+  bit                        valid;
 
-  modport rob  (input  result, target);
-  modport exwb (output result, target);
+  modport rob (output head, valid);
+  modport mem (input  head, valid);
 endinterface
 
-interface exwb_rob_jump_inf;
-  bit [`INST_TAG_WIDTH] target;
-  bit [`COMMON_WIDTH]   ori_pc;
-  bit [`COMMON_WIDTH]   next_pc;
-
-  modport rob  (input  target, ori_pc, next_pc);
-  modport exwb (output target, ori_pc, next_pc);
-endinterface
-
-interface exwb_rob_branch_inf;
-  bit [`INST_TAG_WIDTH] target;
-  bit [`COMMON_WIDTH]   next_pc;
-  bit                   cmp_res;
-
-  modport rob  (input  target, next_pc, cmp_res);
-  modport exwb (output target, next_pc, cmp_res);
-endinterface
 
 typedef struct {
   bit valid;
@@ -80,11 +63,12 @@ module rob (
   exwb_rob_tar_res_inf.rob forwarder_in,
   exwb_rob_jump_inf.rob    jump_in,
   exwb_rob_branch_inf.rob  branch_in,
-
+  exwb_rob_tar_res_inf.rob mem_in,
 
   rob_broadcast_inf.rob broadcast,
   rob_pos_inf.rob       pos,
   wb_id_inf.rob         to_wb,
+  rob_mem_inf.rob       to_mem,
 
   jump_stall_inf.wb     jump_stall
   );
@@ -92,6 +76,8 @@ module rob (
   reg [`ROB_ENTRY_NUM_WIDTH] head, tail;
   rob_entry entries [0:`ROB_ENTRY_NUM-1];
 
+  assign to_mem.head  = head;
+  assign to_mem.valid = entries[head].valid;
 
   // broadcast
   reg broadcast_ce;
@@ -131,6 +117,11 @@ module rob (
         entries[branch_in.target].ready = 1;
         entries[branch_in.target].val = $unsigned(branch_in.cmp_res);
         entries[branch_in.target].next_pc = branch_in.next_pc;
+      end
+
+      if (mem_in.target !== `TAG_INVALID) begin
+        entries[mem_in.target].ready = 1;
+        entries[mem_in.target].val = mem_in.result;
       end
     end
   endtask
@@ -215,7 +206,8 @@ module rob (
       case (entries[head].op)
         `OP_NOP, `OP_ADD, `OP_ADDU, `OP_SUB, `OP_SUBU, `OP_AND,
         `OP_AND, `OP_OR,  `OP_NOR,  `OP_XOR, `OP_SLL,  `OP_SRL,
-        `OP_SRA, `OP_ROR, `OP_SEQ,  `OP_SLT, `OP_SLTU:
+        `OP_SRA, `OP_ROR, `OP_SEQ,  `OP_SLT, `OP_SLTU,
+        `OP_STORE, `OP_LOAD:
           commit_common;
         `OP_JAL, `OP_JALR:
           commit_jump;
@@ -251,3 +243,30 @@ module rob (
   endtask
 
 endmodule : rob
+
+
+interface exwb_rob_tar_res_inf;
+  bit [`COMMON_WIDTH]   result;
+  bit [`INST_TAG_WIDTH] target;
+
+  modport rob  (input  result, target);
+  modport exwb (output result, target);
+endinterface
+
+interface exwb_rob_jump_inf;
+  bit [`INST_TAG_WIDTH] target;
+  bit [`COMMON_WIDTH]   ori_pc;
+  bit [`COMMON_WIDTH]   next_pc;
+
+  modport rob  (input  target, ori_pc, next_pc);
+  modport exwb (output target, ori_pc, next_pc);
+endinterface
+
+interface exwb_rob_branch_inf;
+  bit [`INST_TAG_WIDTH] target;
+  bit [`COMMON_WIDTH]   next_pc;
+  bit                   cmp_res;
+
+  modport rob  (input  target, next_pc, cmp_res);
+  modport exwb (output target, next_pc, cmp_res);
+endinterface

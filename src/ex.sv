@@ -13,9 +13,10 @@ interface idex_ex_inf;
   bit [`COMMON_WIDTH] pc_addr;
 
   bit [`COMMON_WIDTH] offset;
+  bit [2:0]           width;
 
-  modport ex  (input  unit, target, val, tag, op, ce, pc_addr, offset);
-  modport idex(output unit, target, val, tag, op, ce, pc_addr, offset);
+  modport ex  (input  unit, target, val, tag, op, ce, pc_addr, offset, width);
+  modport idex(output unit, target, val, tag, op, ce, pc_addr, offset, width);
 endinterface
 
 interface ex_exwb_alu_inf;
@@ -52,6 +53,14 @@ interface ex_exwb_branch_inf;
   modport ex   (output target, next_pc, cmp_res);
 endinterface
 
+interface ex_exwb_mem_inf;
+  logic [`INST_TAG_WIDTH] target;
+  bit   [`COMMON_WIDTH] result;
+
+  modport exwb (input  target, result);
+  modport ex   (output target, result);
+endinterface
+
 module ex (
   input rst,
   input clk,
@@ -59,12 +68,14 @@ module ex (
   // input
   idex_ex_inf.ex          in,
   rob_broadcast_inf.snoop rob_info,
+  rob_mem_inf.mem         rob_head_info,
 
   // to
   ex_exwb_alu_inf.ex       alu_out,
   ex_exwb_forwarder_inf.ex forwarder_out,
   ex_exwb_jump_inf.ex      jump_out,
   ex_exwb_branch_inf.ex    branch_out,
+  ex_exwb_mem_inf.ex       mem_out,
 
   output full [0:`EX_UNIT_NUM-1]
   );
@@ -133,6 +144,27 @@ module ex (
     .target(branch_out.target),
     .cmp_res(branch_out.cmp_res),
     .next_pc(branch_out.next_pc)
+    );
+
+  mem_unit_reserv_inf mem_unit_inf();
+    assign mem_unit_inf.target = (in.unit == `EX_MEM_UNIT) ? in.target : `TAG_INVALID;
+    assign mem_unit_inf.val = in.val;
+    assign mem_unit_inf.tag = in.tag;
+    assign mem_unit_inf.width = in.width;
+    assign mem_unit_inf.offset = in.offset;
+    assign mem_unit_inf.op  = in.op;
+  // rob_mem_inf mem_unit_rob_head_info();
+  //   assign mem_unit_rob_head_info.head = rob_head_info.head;
+  //   assign mem_unit_rob_head_info.valid = rob_head_info.valid;
+  mem_unit ex_mem(
+    .clk(clk),
+    .rst(rst),
+    .new_entry(mem_unit_inf),
+    .rob_info(rob_info),
+    .rob_head_info(rob_head_info),
+
+    .target(mem_out.target),
+    .result(mem_out.result)
     );
 
 endmodule : ex

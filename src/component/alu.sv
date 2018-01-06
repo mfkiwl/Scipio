@@ -103,9 +103,7 @@ module alu (
       end
       if (pos !== -1) begin
         target = entries[pos].target;
-        calc_type = entries[pos].op;
-        calc_src[1] = entries[pos].val[1];
-        calc_src[2] = entries[pos].val[2];
+        result = alu_calc(entries[pos].op, entries[pos].val[1], entries[pos].val[2]);
         entries[pos].valid = 0;
       end else begin
         target = `TAG_INVALID;
@@ -133,7 +131,6 @@ module alu (
       insert_inst;
       update_val;
       try_issue;
-      result = alu_calc(calc_type, calc_src[1], calc_src[2]);
     end
   end
 

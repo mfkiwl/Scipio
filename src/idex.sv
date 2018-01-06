@@ -19,6 +19,7 @@ module idex (
         to_ex.target <= from_id.target;
         to_ex.pc_addr <= from_id.pc_addr;
         to_ex.offset <= from_id.offset;
+        to_ex.width  <= from_id.width;
 
         to_ex.ce <= ~to_ex.ce; // I forgot why I wrote this line
       end

@@ -22,7 +22,7 @@ module decoder (
         `AUIPC_OPCPDE:  decode_auipc_type;
         `JAL_OPCODE:    decode_jal_type;
         `JALR_OPCODE:   decode_jalr_type;
-        // // TODO: branch
+        `BRANCH_OPCODE: decode_branch_type;
         // `LOAD_OPCODE:   decode_load_type;
         default: decode_empty_type;
       endcase
@@ -156,6 +156,41 @@ module decoder (
     end
   endtask
 
+  task decode_load_type;
+    begin
+      control.ex_unit <= `EX_MEM_UNIT;
+      control.rs_en[1] <= 1;
+      control.offset   <= $signed({inst[`POS_IMM_L], 1'b0});
+      case (inst[13:12])
+        2'b00: control.width <= 1;
+        2'b01: control.width <= 2;
+        2'b10: control.width <= 4;
+        default: ;
+      endcase
+      control.op <= (inst[14]) ? `OP_LOADU : `OP_LOAD;
+
+      decoder_reg_file.rs[1] <= inst[`POS_RS1];
+    end
+  endtask
+
+  task decode_store_type;
+    begin
+      control.ex_unit <= `EX_MEM_UNIT;
+      control.rs_en[1] <= 1;
+      control.rs_en[2] <= 2;
+      control.offset   <= $signed({inst[31:25], inst[11:7], 1'b0});
+      case (inst[13:12])
+        2'b00: control.width <= 1;
+        2'b01: control.width <= 2;
+        2'b10: control.width <= 4;
+        default: ;
+      endcase
+      control.op <= `OP_STORE;
+      decoder_reg_file.rs[1] <= inst[`POS_RS1];
+      decoder_reg_file.rs[2] <= inst[`POS_RS2];
+    end
+  endtask
+
   task decode_empty_type;
     clean_output;
   endtask
@@ -169,12 +204,15 @@ module decoder (
     control.imm_en   <= 0;
     control.pc_en    <= 0;
     control.stall    <= 0;
+    control.width    <= 0;
+    control.offset   <= 0;
 
     decoder_reg_file.rs[1] <= 0;
     decoder_reg_file.rs[2] <= 0;
     decoder_reg_file.rd_en <= 0;
     decoder_reg_file.rd    <= 0;
   endtask
+
 
   task reset;
     begin
