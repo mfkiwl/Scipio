@@ -50,6 +50,16 @@ module branch_unit (
       entries[ri].valid <= 0;
   end
 
+  always @ (negedge clk) begin
+    if (rst) begin
+      ;
+    end else begin
+      insert_inst;
+      update_val;
+      try_issue;
+    end
+  end
+
   task update_val_x;
     input [`RES_ENTRY_NUM_WIDTH] pos;
     integer i;
@@ -91,6 +101,7 @@ module branch_unit (
         entries[pos].tag = new_entry.tag;
         entries[pos].op = new_entry.op;
         entries[pos].pc_addr = new_entry.pc_addr;
+        entries[pos].offset = new_entry.offset;
       end
     end
   endtask

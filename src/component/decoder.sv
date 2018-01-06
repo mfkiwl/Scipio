@@ -23,7 +23,8 @@ module decoder (
         `JAL_OPCODE:    decode_jal_type;
         `JALR_OPCODE:   decode_jalr_type;
         `BRANCH_OPCODE: decode_branch_type;
-        // `LOAD_OPCODE:   decode_load_type;
+        `LOAD_OPCODE:   decode_load_type;
+        `STORE_OPCODE:  decode_store_type;
         default: decode_empty_type;
       endcase
     end
@@ -142,7 +143,7 @@ module decoder (
       control.rs_en[2] <= 1;
       decoder_reg_file.rs[1] <= inst[`POS_RS1];
       decoder_reg_file.rs[2] <= inst[`POS_RS2];
-      control.offset <= $signed({inst[31], inst[7], inst[30:25], inst[11:8]});
+      control.offset <= $signed({inst[31], inst[7], inst[30:25], inst[11:8], 1'b0});
       case (inst[`POS_FUNCT3])
         `BEQ_FUNCT3: control.op <= `OP_BEQ;
         `BNE_FUNCT3: control.op <= `OP_BNE;

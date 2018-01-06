@@ -140,7 +140,6 @@ module rob (
     end
   endtask
 
-  // TODO: unify commit
   task commit_jump;
     begin
     if (entries[head].valid && entries[head].ready) begin
