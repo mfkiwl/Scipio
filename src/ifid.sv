@@ -28,7 +28,7 @@ module ifid (
     end
   end
 
-  always @ (negedge stall) begin
+  always @ (negedge jump_stall.stall) begin
     stall_prev = 1;
   end
 

@@ -29,6 +29,7 @@ module cpu_core (
       exwb_rob_jump_inf    exwb_wb_jump();
       exwb_rob_branch_inf  exwb_wb_branch();
       exwb_rob_tar_res_inf exwb_wb_mem();
+      driver               exwb_wb_driver();
 
     wb_id_inf   wb_id();
   // boradcast & snoop
@@ -113,12 +114,16 @@ module cpu_core (
     .branch_out(exwb_wb_branch),
 
     .mem_in(ex_exwb_mem),
-    .mem_out(exwb_wb_mem)
+    .mem_out(exwb_wb_mem),
+
+    .driving(exwb_wb_driver)
     );
 
   rob ROB (
     .clk(clk),
     .rst(rst),
+
+    .drived(exwb_wb_driver),
 
     .alu_in(exwb_wb_alu),
     .forwarder_in(exwb_wb_forwarder),

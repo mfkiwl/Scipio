@@ -128,9 +128,6 @@ module id (
     end
   end
   always @ (negedge clk) begin
-    // TODO: no inst, ROB FULL
-    tag_ce = ~tag_ce;
-    rob_pos.tag_ce = tag_ce;
     if (rob_pos.full || decoder_control.ex_unit == `EX_ERR_UNIT) begin
       rob_pos.tag_token = 0;
       full_stall.stall  = rob_pos.full;
@@ -142,6 +139,8 @@ module id (
       rob_pos.rd = decoder_reg_file.rd;
       rob_pos.op = decoder_control.op;
     end
+    tag_ce = ~tag_ce;
+    rob_pos.tag_ce = tag_ce;
   end
 
   // reset

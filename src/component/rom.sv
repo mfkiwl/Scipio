@@ -44,14 +44,13 @@ module rom (
       reset;
     end else if (read.en) begin
       read.done <= 1;
-      read.data <= 0;
-      read.data[7:0] <= memory[read.addr >> 2];
-      if (read.byte_num > 1)
-        read.data[15:8] <= memory[read.addr >> 2 + 1];
-      if (read.byte_num > 2)
-        read.data[23:16] <= memory[read.addr >> 2 + 2];
-      if (read.byte_num > 3)
-        read.data[31:24] <= memory[read.addr >> 2 + 3];
+      case (read.byte_num)
+        1: read.data[7:0]  <= memory[read.addr];
+        2: read.data[15:0] <= {memory[read.addr + 1], memory[read.addr]};
+        4: read.data[31:0] <= {memory[read.addr + 3], memory[read.addr + 2],
+                               memory[read.addr + 1], memory[read.addr]};
+        default: ;
+      endcase
     end
   end
 
@@ -60,25 +59,28 @@ module rom (
     if (rst) begin
       reset;
     end else if (write.en) begin
+      // TODO: write
       write.done <= 1;
-      memory[write.addr >> 2] <= write.data[7:0];
-      if (write.byte_num > 1)
-        memory[write.addr >> 2 + 1] <= write.data[15:8];
-      if (write.byte_num > 2)
-        memory[write.addr >> 2 + 2] <= write.data[23:16];
-      if (write.byte_num > 3)
-        memory[write.addr >> 2 + 3] <= write.data[31:24];
+
+      case (write.byte_num)
+        1: memory[write.addr] <= write.data[7:0];
+        2: {memory[write.addr + 1], memory[write.addr]} <= write.data[15:0];
+        4: {memory[write.addr + 3], memory[write.addr + 2],
+            memory[write.addr + 1], memory[write.addr]} <= write.data[31:0];
+        default: ;
+      endcase
     end
   end
 
   // fake memory
-  reg [7:0] memory [0:127];
+  reg [7:0] memory [0:1023];
 
   task reset;
     integer i;
     begin
-      for (i = 0; i < 128; i = i + 1)
-       memory[i] <= 0;
+      for (i = 0; i < 1023; i = i + 1)
+        memory[i] <= 0;
+      done <= 0;
     end
   endtask
 

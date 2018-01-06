@@ -59,6 +59,8 @@ module rob (
   input clk,
   input rst,
 
+  driver.drived drived,
+
   exwb_rob_tar_res_inf.rob alu_in,
   exwb_rob_tar_res_inf.rob forwarder_in,
   exwb_rob_jump_inf.rob    jump_in,
@@ -184,8 +186,8 @@ module rob (
     end
   endtask
 
-  always @ (posedge clk or posedge rst) begin
-    if (rst) begin
+  always @ (drived.ce or posedge rst) begin
+    if (rst || !drived.en) begin
       reset;
     end else begin
       push;
@@ -206,7 +208,7 @@ module rob (
         `OP_NOP, `OP_ADD, `OP_ADDU, `OP_SUB, `OP_SUBU, `OP_AND,
         `OP_AND, `OP_OR,  `OP_NOR,  `OP_XOR, `OP_SLL,  `OP_SRL,
         `OP_SRA, `OP_ROR, `OP_SEQ,  `OP_SLT, `OP_SLTU,
-        `OP_STORE, `OP_LOAD:
+        `OP_STORE, `OP_LOAD, `OP_LOADU:
           commit_common;
         `OP_JAL, `OP_JALR:
           commit_jump;
@@ -238,6 +240,8 @@ module rob (
       for (i = 0; i < `ROB_ENTRY_NUM; i = i + 1)
         entries[i].valid <= 0;
       broadcast_ce <= 0;
+      to_mem.head <= 0;
+      to_mem.valid <= 0;
     end
   endtask
 

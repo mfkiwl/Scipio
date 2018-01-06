@@ -38,33 +38,44 @@ module mem_unit (
   reg busy;
   mem_reserv_entry entries[0:`RES_ENTRY_NUM-1];
 
+  always @ (negedge clk) begin
+    if (rst) begin
+      ;
+    end else begin
+      insert_inst;
+      update_val;
+      try_issue;
+    end
+  end
+
   task try_issue;
     integer i, pos;
     begin
-      if (!busy && rob_head_info.valid) begin
-        target = `TAG_INVALID;
-        busy = 1;
+      target = `TAG_INVALID;
+      if (!rob_head_info.valid)
+        return;
+
+      if (!busy) begin
         pos = -1;
         for (i = 0; i < `RES_ENTRY_NUM; i = i + 1)
-          if (entries[i].valid && entries[i].tag[1] == `TAG_INVALID
+          if (entries[i].valid
+            && entries[i].tag[1] == `TAG_INVALID
             && entries[i].tag[2] == `TAG_INVALID
             && entries[i].target == rob_head_info.head)
             pos = i;
 
         if (pos !== -1) begin
-          if (entries[pos].op == `OP_STORE)
-            store(pos);
-          else
-            load(pos);
-        end else begin
-          target = `TAG_INVALID;
+          busy = 1;
+          if (entries[pos].op == `OP_STORE) begin store(pos);
+          end else load(pos);
         end
-        // busy = 0;
-      end else begin
-        if (entries[pos].op == `OP_STORE)
+      end
+      else begin
+        if (entries[pos].op == `OP_STORE) begin
           restore(pos);
-        else
+        end else begin
           reload(pos);
+        end
       end
     end
   endtask
@@ -96,6 +107,7 @@ module mem_unit (
         write.en = 0;
         target = entries[pos].target;
         entries[pos].valid = 0;
+        busy = 0;
       end else begin
         target = `TAG_INVALID;
       end
@@ -116,11 +128,23 @@ module mem_unit (
       if (read.done) begin
         read.en = 0;
         target = entries[pos].target;
-        if (entries[pos].op == `OP_LOAD)
-          result = read.data; // TODO: extension
-        else
-          result = read.data;
+        if (entries[pos].op == `OP_LOAD) begin
+          case (entries[pos].width)
+            1: result = $signed(read.data[7:0]);
+            2: result = $signed(read.data[15:0]);
+            4: result = read.data;
+            default: ;
+          endcase
+        end else begin
+        case (entries[pos].width)
+          1: result = $unsigned(read.data[7:0]);
+          2: result = $unsigned(read.data[15:0]);
+          4: result = read.data;
+          default: ;
+        endcase
+        end
         entries[pos].valid = 0;
+        busy = 0;
       end else begin
         target = `TAG_INVALID;
       end

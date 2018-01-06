@@ -95,13 +95,18 @@ module branch_unit (
         pos = -1;
         for (i = 0; i < `RES_ENTRY_NUM; i = i + 1)
           pos = (entries[i].valid) ? pos : i;
-        entries[pos].valid = 1;
-        entries[pos].target = new_entry.target;
-        entries[pos].val = new_entry.val;
-        entries[pos].tag = new_entry.tag;
-        entries[pos].op = new_entry.op;
-        entries[pos].pc_addr = new_entry.pc_addr;
-        entries[pos].offset = new_entry.offset;
+
+        if (pos !== -1) begin
+          entries[pos].valid = 1;
+          entries[pos].target = new_entry.target;
+          entries[pos].val = new_entry.val;
+          entries[pos].tag = new_entry.tag;
+          entries[pos].op = new_entry.op;
+          entries[pos].pc_addr = new_entry.pc_addr;
+          entries[pos].offset = new_entry.offset;
+        end else begin
+          target = `TAG_INVALID;
+        end
       end
     end
   endtask

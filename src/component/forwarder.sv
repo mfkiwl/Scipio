@@ -67,13 +67,15 @@ module forwarder (
         target = entries[pos].target;
         result = entries[pos].val;
         entries[pos].valid = 0;
+      end else begin
+        target = `TAG_INVALID;
       end
     end
   endtask
 
   always @ (negedge clk) begin
     if (!rst) begin
-      insert_inst; // TODO: move to posedge
+      insert_inst;
       update_val;
       try_issue;
     end

@@ -161,7 +161,7 @@ module decoder (
     begin
       control.ex_unit <= `EX_MEM_UNIT;
       control.rs_en[1] <= 1;
-      control.offset   <= $signed({inst[`POS_IMM_L], 1'b0});
+      control.offset   <= $signed({inst[31:20]});
       case (inst[13:12])
         2'b00: control.width <= 1;
         2'b01: control.width <= 2;
@@ -170,6 +170,8 @@ module decoder (
       endcase
       control.op <= (inst[14]) ? `OP_LOADU : `OP_LOAD;
 
+      decoder_reg_file.rd_en <= 1;
+      decoder_reg_file.rd <= inst[`POS_RD];
       decoder_reg_file.rs[1] <= inst[`POS_RS1];
     end
   endtask
@@ -178,8 +180,8 @@ module decoder (
     begin
       control.ex_unit <= `EX_MEM_UNIT;
       control.rs_en[1] <= 1;
-      control.rs_en[2] <= 2;
-      control.offset   <= $signed({inst[31:25], inst[11:7], 1'b0});
+      control.rs_en[2] <= 1;
+      control.offset   <= $signed({inst[31:25], inst[11:7]});
       case (inst[13:12])
         2'b00: control.width <= 1;
         2'b01: control.width <= 2;
