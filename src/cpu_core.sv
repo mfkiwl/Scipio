@@ -38,6 +38,7 @@ module cpu_core (
     rob_pos_inf rob_pos();
   // stall
     jump_stall_inf jump_stall();
+    full_stall_inf full_stall();
   ////////////////////////////////
 
   pif IF (
@@ -45,6 +46,7 @@ module cpu_core (
     .rst(rst),
 
     .jump_stall(jump_stall),
+    .full_stall(full_stall),
 
     .to_idif(if_ifid)
     );
@@ -53,6 +55,7 @@ module cpu_core (
     .rst(rst),
     .clk(clk),
     .jump_stall(jump_stall),
+    .full_stall(full_stall),
     .from_if(if_ifid),
     .to_id(ifid_id)
     );
@@ -64,6 +67,7 @@ module cpu_core (
     .from_ifid(ifid_id),
 
     .jump_stall(jump_stall),
+    .full_stall(full_stall),
 
     .rob_pos(rob_pos),
     .wb(wb_id),

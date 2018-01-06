@@ -13,6 +13,7 @@ module pif (
   input rst,
 
   jump_stall_inf.pif jump_stall,
+  full_stall_inf.pif full_stall,
 
   pif_ifid_inf.pif to_idif
   );
@@ -22,8 +23,11 @@ module pif (
 
   assign to_idif.pc_addr = pc_out_pc_addr;
 
+  reg stall;
+  assign stall = jump_stall.stall || full_stall.stall;
+
   always @ ( * ) begin
-    if (jump_stall.stall)
+    if (stall)
       next_pc = pc_out_pc_addr;
     else if (jump_stall.jump_en)
       next_pc = jump_stall.jump_addr;

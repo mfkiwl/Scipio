@@ -39,6 +39,7 @@ module id (
   input reservation_full [0:`EX_UNIT_NUM-1],
 
   jump_stall_inf.id jump_stall,
+  full_stall_inf.id full_stall,
 
   id_idex_inf.id to_idex
   );
@@ -55,14 +56,14 @@ module id (
     .decoder_reg_file(decoder_reg_file)
     );
 
-  wire [`INST_TAG_WIDTH] target = rob_pos.avail_tag;
-  assign to_idex.target = target;
+  // reg [`INST_TAG_WIDTH] target = rob_pos.avail_tag;
+  // assign to_idex.target = target;
   reg_file id_reg_file(
     .clk(clk),
     .rst(rst),
     .rst_tag(rst_tag),
 
-    .rd_tag(target),
+    .rd_tag(rob_pos.avail_tag),
     .wb(wb),
     .in(decoder_reg_file),
     .out(reg_file_result)
@@ -120,16 +121,22 @@ module id (
     rob_pos.tag_ce = tag_ce;
     if (rob_pos.full || decoder_control.ex_unit == `EX_ERR_UNIT) begin
       rob_pos.tag_token = 0;
+      full_stall.stall  = rob_pos.full;
+      to_idex.target = `TAG_INVALID;
     end else begin
-      // target = rob_pos.avail_tag;
+      to_idex.target = rob_pos.avail_tag;
       rob_pos.tag_token = 1;
+      full_stall.stall  = 0;
       rob_pos.rd = decoder_reg_file.rd;
       rob_pos.op = decoder_control.op;
     end
   end
 
   // reset
-  always @ (posedge rst) jump_stall.stall = 0;
+  always @ (posedge rst) begin
+    jump_stall.stall = 0;
+    full_stall.stall = 0;
+  end
 
 endmodule // id
 

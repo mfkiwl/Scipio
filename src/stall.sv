@@ -36,3 +36,20 @@ interface jump_stall_inf;
   modport wb   (output reset,
                 output jump_en, jump_addr);
 endinterface
+
+interface full_stall_inf;
+  bit stall;
+
+  /* At ID, if ROB is full, stall should be set to 1.
+   * The size of reservation station is greater or equal
+   * to the size of ROB, so it will never cause a stall.
+   *
+   * At IFID, if a stall is detected, it should not
+   * forward anything, just keep everything the same.
+   * If "stall" is reseted to 0,
+   */
+  modport pif (input  stall);
+  modport ifid(input  stall);
+  modport id  (output stall);
+  modport idex(input  stall);
+endinterface
