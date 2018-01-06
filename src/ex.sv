@@ -83,8 +83,10 @@ module ex (
 
   alu_reserv_inf alu_inf();
     assign alu_inf.target = (in.unit == `EX_ALU_UNIT) ? in.target : `TAG_INVALID;
-    assign alu_inf.val = in.val;
-    assign alu_inf.tag = in.tag;
+    assign alu_inf.val[1] = in.val[1];
+    assign alu_inf.val[2] = in.val[2];
+    assign alu_inf.tag[1] = in.tag[1];
+    assign alu_inf.tag[2] = in.tag[2];
     assign alu_inf.op  = in.op;
     assign alu_inf.ce  = in.ce;
   alu ex_alu(
@@ -114,7 +116,8 @@ module ex (
 
   jump_unit_reserv_inf jump_unit_inf();
     assign jump_unit_inf.target = (in.unit == `EX_JUMP_UNIT) ? in.target : `TAG_INVALID;
-    assign jump_unit_inf.val = in.val;
+    assign jump_unit_inf.val[1] = in.val[1];
+    assign jump_unit_inf.val[2] = in.val[2];
     assign jump_unit_inf.tag = in.tag[2];
     assign jump_unit_inf.pc_addr = in.pc_addr;
   jump_unit ex_jump_unit(
@@ -130,8 +133,10 @@ module ex (
 
   branch_unit_reserv_inf branch_unit_inf();
     assign branch_unit_inf.target = (in.unit == `EX_BRANCH_UNIT) ? in.target : `TAG_INVALID;
-    assign branch_unit_inf.val = in.val;
-    assign branch_unit_inf.tag = in.tag;
+    assign branch_unit_inf.val[1] = in.val[1];
+    assign branch_unit_inf.val[2] = in.val[2];
+    assign branch_unit_inf.tag[1] = in.tag[1];
+    assign branch_unit_inf.tag[2] = in.tag[2];
     assign branch_unit_inf.pc_addr = in.pc_addr;
     assign branch_unit_inf.offset  = in.offset;
     assign branch_unit_inf.op = in.op;
@@ -148,8 +153,10 @@ module ex (
 
   mem_unit_reserv_inf mem_unit_inf();
     assign mem_unit_inf.target = (in.unit == `EX_MEM_UNIT) ? in.target : `TAG_INVALID;
-    assign mem_unit_inf.val = in.val;
-    assign mem_unit_inf.tag = in.tag;
+    assign mem_unit_inf.val[1] = in.val[1];
+    assign mem_unit_inf.val[2] = in.val[2];
+    assign mem_unit_inf.tag[1] = in.tag[1];
+    assign mem_unit_inf.tag[2] = in.tag[2];
     assign mem_unit_inf.width = in.width;
     assign mem_unit_inf.offset = in.offset;
     assign mem_unit_inf.op  = in.op;

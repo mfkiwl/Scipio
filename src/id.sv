@@ -92,18 +92,30 @@ module id (
       to_idex.val[1] <= from_ifid.pc_addr;
       to_idex.tag[1] <= `TAG_INVALID;
     end else begin
-      to_idex.val[1] <= reg_file_result.val[1];
-      to_idex.tag[1] <= (decoder_control.rs_en[1]) ?
-                        reg_file_result.tag[1] : `TAG_INVALID;
+      if (decoder_control.rs_en[1]) begin
+        if (reg_file_result.tag[1] == wb.tag) begin
+          to_idex.val[1] <= wb.data;
+          to_idex.tag[1] <= `TAG_INVALID;
+        end else begin
+          to_idex.val[1] <= reg_file_result.val[1];
+          to_idex.tag[1] <= reg_file_result.tag[1];
+        end
+      end
     end
     // src2
     if (decoder_control.imm_en) begin
       to_idex.val[2] <= decoder_control.imm;
       to_idex.tag[2] <= `TAG_INVALID;
     end else begin
-      to_idex.val[2] <= reg_file_result.val[2];
-      to_idex.tag[2] <= (decoder_control.rs_en[2]) ?
-                        reg_file_result.tag[2] : `TAG_INVALID;
+      if (decoder_control.rs_en[2]) begin
+        if (reg_file_result.tag[2] == wb.tag) begin
+          to_idex.val[2] <= wb.data;
+          to_idex.tag[2] <= `TAG_INVALID;
+        end else begin
+          to_idex.val[2] <= reg_file_result.val[2];
+          to_idex.tag[2] <= reg_file_result.tag[2];
+        end
+      end
     end
   end
 
