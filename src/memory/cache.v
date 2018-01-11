@@ -299,7 +299,7 @@ module cache
   end
 
   always @(*) begin
-    $display("state = %d", state);
+    // $display("state = %d", state);
     next_state = state;
     next_current_cache = current_cache;
     next_current_tag = current_tag;
@@ -330,18 +330,18 @@ module cache
 
     case(state)
     STATE_IDLE: begin
-      $display("idle");
+      // $display("idle");
       case(1'b1)
       rw_flag[0]: begin
         if(found_in_cache != 0) begin
-          $display("found in cache!");
+          // $display("found in cache!");
           read_cache = one_hot_lookup[found_in_cache];
           read_block = addr_index;
           read_word = addr_ws;
           //read_flag = 1;
           next_done = 1;
         end else begin
-          $display("not found");
+          // $display("not found");
           mem_rw_flag = 1;
           mem_addr = {addr_tag, addr_index, addr_ws, 2'b00};
           next_current_cache = lru_id;
@@ -376,7 +376,7 @@ module cache
     end
 
     STATE_WAIT_FOR_READ_PHASE_1: begin
-      $display("phase 1");
+      // $display("phase 1");
       if(mem_done) begin
         write_cache = current_cache;
         write_block = current_block;
@@ -395,7 +395,7 @@ module cache
     end
 
     STATE_WAIT_FOR_READ_PHASE_2: begin
-      $display("phase 2");
+      // $display("phase 2");
       if(mem_done) begin
         write_cache = current_cache;
         write_block = current_block;

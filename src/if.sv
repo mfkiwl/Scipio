@@ -33,43 +33,60 @@ module pif (
   if_icache_inf.pif    with_icache
   );
 
-  reg [`COMMON_WIDTH] pc;
-  reg stall;
+  reg reading;
 
-<<<<<<< Updated upstream
   wire [`COMMON_WIDTH] pc_out_pc_addr;
   reg  [`COMMON_WIDTH] next_pc;
 
-  wire stall = jump_stall.stall || full_stall.stall || with_icache.busy;
-  assign next_pc = (jump_stall.jump_en) ? jump_stall.jump_addr : pc_out_pc_addr + 4;
+  // assign to_idif.pc_addr = pc_out_pc_addr;
 
-  reg flag;
+  wire stall = jump_stall.stall || full_stall.stall;
+
+  reg discard;
   always @ (posedge rst) begin
-    flag = 0;
+    reading = 0;
+    discard = 0;
+    // flag = 0;
+    stalled_by_jump = 0;
   end
+
+  reg [`COMMON_WIDTH] jump_addr;
+  reg stalled_by_jump;
+  always @ (negedge jump_stall.stall) begin
+    discard = 1;
+    if (jump_stall.jump_en)
+      jump_addr = jump_stall.jump_addr;
+    else
+      jump_addr = pc_out_pc_addr;
+  end
+
+  always @ (posedge clk) begin
+    stalled_by_jump = 0;
+  end
+
+  // next pc
+  always @ ( * ) begin
+    if (jump_stall.stall) begin
+      stalled_by_jump = 1;
+      next_pc <= 0;
+    end else if (reading || full_stall.stall) begin
+
+      next_pc <= stalled_by_jump ? jump_addr : pc_out_pc_addr;
+    end else begin
+      stalled_by_jump <= 0;
+      next_pc <= pc_out_pc_addr + 4;
+    end
+  end
+
+  /*
   always @ (posedge jump_stall.stall) begin
     reserved = 0;
     flag = 1;
   end
-
   reg [`COMMON_WIDTH] reserve_addr;
   reg reserved;
+  reg flag;
   always @ ( * ) begin
-// <<<<<<< HEAD
-//     to_idif.inst = 0;
-//     with_icache.read_flag = 0;
-//     if (rst) begin
-//       to_idif.inst = 0;
-//       with_icache.read_flag = 0;
-//     end else if (with_icache.done) begin
-//       to_idif.inst = with_icache.read_data;
-//       to_idif.pc_addr = pc_out_pc_addr;
-//     end else if (!with_icache.busy) begin
-//       with_icache.read_flag = 1;
-//       with_icache.addr = pc_out_pc_addr;
-//     end else if (with_icache.busy) begin
-//       with_icache.read_flag = 0;
-// =======
     if (stall) begin
       next_pc = pc_out_pc_addr;
       if (jump_stall.stall) begin
@@ -87,22 +104,49 @@ module pif (
       next_pc = reserve_addr;
       reserved = 0;
       flag = 0;
+    end else if (reading) begin
     end else begin
       // $display("+4");
       next_pc = pc_out_pc_addr + 4;
-// >>>>>>> commit
-=======
-  always @ (posedge clk or posedge rst) begin
-    if (rst) begin
-    end else begin
+    end
+  end
+  */
 
->>>>>>> Stashed changes
+
+
+  always @ ( * ) begin
+    to_idif.inst = 0;
+    with_icache.read_flag = 0;
+    if (rst || pc_out_pc_addr == -4) begin
+      to_idif.inst = 0;
+      with_icache.read_flag = 0;
+    end else if (with_icache.done) begin
+      // if (!discard) begin
+        to_idif.inst = with_icache.read_data;
+        to_idif.pc_addr = pc_out_pc_addr;
+      // end else begin
+      //   to_idif.inst = 0;
+      //   discard = 0;
+      // end
+      reading = 0;
+    end else if (!with_icache.busy) begin
+      with_icache.read_flag = 1;
+      with_icache.addr = pc_out_pc_addr;
+      reading = 1;
+    end else if (with_icache.busy) begin
+      with_icache.read_flag = 0;
     end
   end
 
-  always @ ( * ) begin
+  pc_reg pc (
+    .clk(clk),
+    .rst(rst),
 
-  end
+    .next_pc(next_pc),
+
+    .pc_addr(pc_out_pc_addr)
+    );
+
 
   // 2
   // wire [`COMMON_WIDTH] pc_out_pc_addr;

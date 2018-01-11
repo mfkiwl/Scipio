@@ -20,13 +20,8 @@ module inst_rom (
     for (i = 0; i < SIZE; i = i + 1) begin
       inst_mem[i] = 0;
     end
-<<<<<<< HEAD
     $readmemh("/home/aaronren/Desktop/code_gener/sample.data", inst_mem);
     for (i = 0; i < SIZE; i = i + 1) begin
-=======
-    $readmemh("/home/aaronren/Desktop/test/jumps.data", inst_mem);
-    for (i = 0; i < 128; i = i + 1) begin
->>>>>>> commit
       inst_mem[i][31:24] <= inst_mem[i][7:0];
       inst_mem[i][23:16] <= inst_mem[i][15:8];
       inst_mem[i][15:8]  <= inst_mem[i][23:16];
