@@ -33,7 +33,10 @@ module pif (
   if_icache_inf.pif    with_icache
   );
 
+  reg [`COMMON_WIDTH] pc;
+  reg stall;
 
+<<<<<<< Updated upstream
   wire [`COMMON_WIDTH] pc_out_pc_addr;
   reg  [`COMMON_WIDTH] next_pc;
 
@@ -88,39 +91,99 @@ module pif (
       // $display("+4");
       next_pc = pc_out_pc_addr + 4;
 // >>>>>>> commit
+=======
+  always @ (posedge clk or posedge rst) begin
+    if (rst) begin
+    end else begin
+
+>>>>>>> Stashed changes
     end
   end
 
-  pc_reg pc (
-    .clk(clk),
-    .rst(rst),
+  always @ ( * ) begin
 
-    .stall(stall),
-    .jump(jump_stall.jump_en),
+  end
 
-    .next_pc(next_pc),
+  // 2
+  // wire [`COMMON_WIDTH] pc_out_pc_addr;
+  // reg  [`COMMON_WIDTH] next_pc;
+  //
+  // wire stall = jump_stall.stall || full_stall.stall || with_icache.busy;
 
-    .pc_addr(pc_out_pc_addr)
-    );
+  // 1
+  // assign next_pc = (jump_stall.jump_en) ? jump_stall.jump_addr : pc_out_pc_addr + 4;
+  // reg jump;
+  // reg [`COMMON_WIDTH] jump_addr;
+  // always @ (posedge jump_stall.jump_en) begin
+  //   jump = 1;
+  //   jump_addr = jump_stall.jump_addr;
+  // end
+  //
+  // pc_reg pc (
+  //   .clk(clk),
+  //   .rst(rst),
+  //
+  //   .stall(stall),
+  //   .jump(jump_stall.jump_en),
+  //
+  //   .next_pc(next_pc),
+  //
+  //   .pc_addr(pc_out_pc_addr)
+  //   );
 
+  // 2
+  // reg jump;
+  // always @ ( * ) begin
+  //   if (rst || flag) begin
+  //     ;
+  //   end else if (jump_stall.jump_en)
+  //     next_pc = jump_stall.jump_addr;
+  //     // jump = 1;
+  //   else if (stall || !with_icache.done)
+  //     next_pc = pc_out_pc_addr;
+  //   else
+  //     next_pc = pc_out_pc_addr + 4;
+  // end
+  //
+  // pc_reg pc (
+  //   .clk(clk),
+  //   .rst(rst),
+  //
+  //   .next_pc(next_pc),
+  //
+  //   .pc_addr(pc_out_pc_addr)
+  // );
+  //
+  // reg stall_flag;
+  //
   // always @ (posedge rst) begin
-  //   with_icache.read_flag = 0;
+  //   jump = 0;
+  //   stall_flag = 0;
+  // end
+  //
+  // always @ (negedge jump_stall.stall) begin
+  //   stall_flag = 0;
   // end
   //
   // always @ ( * ) begin
-  //   with_icache.addr      = pc_out_pc_addr;
-  //   with_icache.read_flag = !stall;
-  //   to_idif.inst = (with_icache.done) ? with_icache.read_data : 0;
-  //   to_idif.pc_addr       = pc_out_pc_addr;
+  //   to_idif.inst = 0;
+  //   with_icache.read_flag = 0;
+  //   if (rst || pc_out_pc_addr == -4) begin
+  //     to_idif.inst = 0;
+  //     with_icache.read_flag = 0;
+  //   end else if (with_icache.done) begin
+  //     to_idif.inst = with_icache.read_data;
+  //     to_idif.pc_addr = pc_out_pc_addr;
+  //     if (to_idif.inst[`POS_OPCODE] == `JAL_OPCODE || to_idif.inst[`POS_OPCODE] == `JALR_OPCODE
+  //       || to_idif.inst[`POS_OPCODE] == `BRANCH_OPCODE) begin
+  //         stall_flag = 1;
+  //     end
+  //   end else if (!with_icache.busy) begin
+  //     with_icache.read_flag = 1;
+  //     with_icache.addr = pc_out_pc_addr;
+  //   end else if (with_icache.busy) begin
+  //     with_icache.read_flag = 0;
+  //   end
   // end
-
-
-
-  // inst_rom rom(
-  //   .rst(rst),
-  //   .addr(pc_out_pc_addr),
-  //
-  //   .inst(to_idif.inst)
-  //   );
 
 endmodule : pif
