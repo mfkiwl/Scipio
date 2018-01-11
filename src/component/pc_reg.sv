@@ -7,6 +7,7 @@ module pc_reg (
   input rst,
 
   input stall,
+  input jump,
 
   input [`COMMON_WIDTH] next_pc,
 

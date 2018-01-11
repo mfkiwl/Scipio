@@ -83,6 +83,7 @@ module mem_unit (
         end
       end
       else begin
+        with_dcache.rw_flag = 0;
         if (entries[pos].op == `OP_STORE) begin
           restore(pos);
         end else begin

@@ -37,6 +37,6 @@ module sim_cpu();
     #1 RST = 1;
     #1000;
     RST = 0;
-    forever #10 CLK = ~CLK;
+    forever #5 CLK = ~CLK;
   end
 endmodule

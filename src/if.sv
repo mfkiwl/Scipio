@@ -62,6 +62,7 @@ module pif (
     .rst(rst),
 
     .stall(stall),
+    .jump(jump_stall.jump_en),
 
     .next_pc(next_pc),
 
