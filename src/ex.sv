@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 `include "common_def.h"
 
 interface idex_ex_inf;
@@ -61,6 +63,19 @@ interface ex_exwb_mem_inf;
   modport ex   (output target, result);
 endinterface
 
+interface mem_dcache_inf;
+  bit [2:0]  rw_flag;
+  bit [31:0] addr;
+  bit [31:0] read_data;
+  bit [31:0] write_data;
+  bit [3:0]  write_mask;
+  bit        busy;
+  bit        done;
+
+  modport mem (output rw_flag, addr, write_data, write_mask,
+               input  read_data, busy, done);
+endinterface
+
 module ex (
   input rst,
   input clk,
@@ -76,6 +91,8 @@ module ex (
   ex_exwb_jump_inf.ex      jump_out,
   ex_exwb_branch_inf.ex    branch_out,
   ex_exwb_mem_inf.ex       mem_out,
+
+  mem_dcache_inf          with_dcache,
 
   output full [0:`EX_UNIT_NUM-1]
   );
@@ -163,12 +180,21 @@ module ex (
   // rob_mem_inf mem_unit_rob_head_info();
   //   assign mem_unit_rob_head_info.head = rob_head_info.head;
   //   assign mem_unit_rob_head_info.valid = rob_head_info.valid;
+  // mem_dcache md();
+  //   assign with_dcache.rw_flag = md.rw_flag;
+  //   assign with_dcache.addr    = md.addr;
+  //   assign with_dcache.write_data = md.write_data;
+  //   assign with_dcache.write_mask = md.write_mask;
+  //   assign md.read_data = with_dcache.read_data;
+  //   assign md.busy = with_dcache.busy;
+  //   assign md.done = with_dcache.done;
   mem_unit ex_mem(
     .clk(clk),
     .rst(rst),
     .new_entry(mem_unit_inf),
     .rob_info(rob_info),
     .rob_head_info(rob_head_info),
+    .with_dcache(with_dcache),
 
     .target(mem_out.target),
     .result(mem_out.result)

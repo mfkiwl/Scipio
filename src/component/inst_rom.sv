@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 `include "common_def.h"
 
 module inst_rom (
@@ -8,16 +10,18 @@ module inst_rom (
   output reg [`COMMON_WIDTH] inst
   );
 
-  reg [`COMMON_WIDTH] inst_mem[127:0];
+  parameter SIZE = 1024;
 
+
+  reg [`COMMON_WIDTH] inst_mem[SIZE-1:0];
 
   integer i;
   initial begin
-    for (i = 0; i < 127; i = i + 1) begin
+    for (i = 0; i < SIZE; i = i + 1) begin
       inst_mem[i] = 0;
     end
     $readmemh("/home/aaronren/Desktop/code_gener/sample.data", inst_mem);
-    for (i = 0; i < 128; i = i + 1) begin
+    for (i = 0; i < SIZE; i = i + 1) begin
       inst_mem[i][31:24] <= inst_mem[i][7:0];
       inst_mem[i][23:16] <= inst_mem[i][15:8];
       inst_mem[i][15:8]  <= inst_mem[i][23:16];

@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 `include "common_def.h"
 
 interface forwarder_reserv_inf;

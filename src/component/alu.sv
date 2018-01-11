@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 `include "common_def.h"
 
 interface alu_reserv_inf;

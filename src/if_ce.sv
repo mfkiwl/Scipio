@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 `include "common_def.h"
 
 module if_ce (

@@ -1,5 +1,5 @@
 `include "common_def.h"
-
+`timescale 1ns/1ps
 interface branch_unit_reserv_inf;
   logic [`INST_TAG_WIDTH] target;
   bit [`COMMON_WIDTH]   val [1:2];
