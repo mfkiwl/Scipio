@@ -40,20 +40,54 @@ module pif (
   wire stall = jump_stall.stall || full_stall.stall || with_icache.busy;
   assign next_pc = (jump_stall.jump_en) ? jump_stall.jump_addr : pc_out_pc_addr + 4;
 
+  reg flag;
+  always @ (posedge rst) begin
+    flag = 0;
+  end
+  always @ (posedge jump_stall.stall) begin
+    reserved = 0;
+    flag = 1;
+  end
+
+  reg [`COMMON_WIDTH] reserve_addr;
+  reg reserved;
   always @ ( * ) begin
-    to_idif.inst = 0;
-    with_icache.read_flag = 0;
-    if (rst) begin
-      to_idif.inst = 0;
-      with_icache.read_flag = 0;
-    end else if (with_icache.done) begin
-      to_idif.inst = with_icache.read_data;
-      to_idif.pc_addr = pc_out_pc_addr;
-    end else if (!with_icache.busy) begin
-      with_icache.read_flag = 1;
-      with_icache.addr = pc_out_pc_addr;
-    end else if (with_icache.busy) begin
-      with_icache.read_flag = 0;
+// <<<<<<< HEAD
+//     to_idif.inst = 0;
+//     with_icache.read_flag = 0;
+//     if (rst) begin
+//       to_idif.inst = 0;
+//       with_icache.read_flag = 0;
+//     end else if (with_icache.done) begin
+//       to_idif.inst = with_icache.read_data;
+//       to_idif.pc_addr = pc_out_pc_addr;
+//     end else if (!with_icache.busy) begin
+//       with_icache.read_flag = 1;
+//       with_icache.addr = pc_out_pc_addr;
+//     end else if (with_icache.busy) begin
+//       with_icache.read_flag = 0;
+// =======
+    if (stall) begin
+      next_pc = pc_out_pc_addr;
+      if (jump_stall.stall) begin
+        next_pc = 0;
+        if (!reserved) begin
+          reserved = 1;
+          reserve_addr = pc_out_pc_addr;
+        end
+      end
+    end else if (jump_stall.jump_en) begin
+      next_pc = jump_stall.jump_addr;
+      flag = 0;
+    end else if (flag) begin
+      // $display("branch not token");
+      next_pc = reserve_addr;
+      reserved = 0;
+      flag = 0;
+    end else begin
+      // $display("+4");
+      next_pc = pc_out_pc_addr + 4;
+// >>>>>>> commit
     end
   end
 

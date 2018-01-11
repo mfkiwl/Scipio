@@ -79,9 +79,9 @@ module decoder (
                          control.imm <= $unsigned(inst[`POS_SHAMT]);
                        end
         `SRLAI_FUNCT3: begin
-                         if (inst[30]) control.op <= `ALU_SRL;
-                         else control.op <= `ALU_SRA;
-                         control.imm <= $signed(inst[`POS_SHAMT]);
+                         if (inst[30]) control.op <= `ALU_SRA;
+                         else control.op <= `ALU_SRL;
+                         control.imm <= $unsigned(inst[`POS_SHAMT]);
                        end
         default: control.op <= `ALU_NOP;
       endcase
@@ -90,8 +90,8 @@ module decoder (
 
   task decode_lui_type;
     control.ex_unit <= `EX_FORWARDER_UNIT;
-    control.imm[`POS_IMM_UI] <= inst[`POS_IMM_UI];
-    control.imm[11:0] <= 0;
+    control.imm <= {inst[`POS_IMM_UI], 12'b0};
+    // control.imm[11:0] <= 0;
     control.imm_en <= 1;
     decoder_reg_file.rd_en <= 1;
     decoder_reg_file.rd <= inst[`POS_RD];
@@ -126,15 +126,16 @@ module decoder (
   task decode_jalr_type;
     begin
       control.ex_unit <= `EX_JUMP_UNIT;
-      control.imm <= $signed({inst[31:31], inst[19:12], inst[20:20], inst[30:21], 1'b0});
+      control.imm <= $signed(inst[31:20]);
       control.imm_en <= 1;
       control.rs_en[1] <= 1;
       decoder_reg_file.rs[1] <= inst[`POS_RS1];
       decoder_reg_file.rd_en <= 1;
       decoder_reg_file.rd <= inst[`POS_RD];
-      control.op <= `OP_JAL;
+      control.op <= `OP_JALR;
 
       control.stall <= 1;
+      // control.R     <= 1;
     end
   endtask
 
@@ -211,6 +212,7 @@ module decoder (
     control.stall    <= 0;
     control.width    <= 0;
     control.offset   <= 0;
+    // control.R        <= 0;
 
     decoder_reg_file.rs[1] <= 0;
     decoder_reg_file.rs[2] <= 0;

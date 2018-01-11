@@ -137,6 +137,7 @@ module ex (
     assign jump_unit_inf.val[2] = in.val[2];
     assign jump_unit_inf.tag = in.tag[2];
     assign jump_unit_inf.pc_addr = in.pc_addr;
+    assign jump_unit_inf.R = (in.op == `OP_JALR);
   jump_unit ex_jump_unit(
     .rst(rst),
     .clk(clk),

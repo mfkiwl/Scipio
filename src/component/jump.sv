@@ -5,17 +5,19 @@
 interface jump_unit_reserv_inf;
   bit [`INST_TAG_WIDTH] target;
   bit [`COMMON_WIDTH]   val [1:2];
+  bit R;
     // the JAL-type entriy should have a zero-valued val[1]
     // val[2] is imm
   bit [`INST_TAG_WIDTH] tag;       // the tag of val[1]
   bit [`COMMON_WIDTH]   pc_addr;
 
-  modport out (output target, val, tag, pc_addr);
-  modport in  (input  target, val, tag, pc_addr);
+  modport out (output target, val, tag, pc_addr, R);
+  modport in  (input  target, val, tag, pc_addr, R);
 endinterface
 
 typedef struct {
   bit valid;
+  bit R;
 
   logic [`INST_TAG_WIDTH] target;
 
@@ -76,6 +78,7 @@ module jump_unit (
         entries[pos].val = new_entry.val;
         entries[pos].tag = new_entry.tag;
         entries[pos].pc_addr = new_entry.pc_addr;
+        entries[pos].R = new_entry.R;
       end
     end
   endtask
@@ -91,6 +94,10 @@ module jump_unit (
       if (pos !== -1) begin
         target = entries[pos].target;
         next_pc = entries[pos].pc_addr + entries[pos].val[1] + entries[pos].val[2];
+        if (entries[pos].R) begin
+          next_pc = entries[pos].val[1] + entries[pos].val[2];
+          next_pc[0] = 0;
+        end
         ori_pc  = entries[pos].pc_addr + 4;
         entries[pos].valid = 0;
       end else begin

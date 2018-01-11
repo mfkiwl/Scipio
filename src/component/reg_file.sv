@@ -14,6 +14,7 @@ module reg_file (
 
   wb_id_inf.id  wb,
 
+  input                         rob_full,
   input [`INST_TAG_WIDTH]       rd_tag,
   decoder_reg_file_inf.reg_file in,
   reg_file_result_inf.reg_file  out
@@ -29,14 +30,14 @@ module reg_file (
         out.val[1] = regs[in.rs[1]].data;
         out.tag[2] = regs[in.rs[2]].tag;
         out.val[2] = regs[in.rs[2]].data;
-        if (in.rd_en && in.rd)
+        if (in.rd_en && in.rd && !rob_full)
             regs[in.rd].tag = rd_tag;
       end
   end
 
   // write back
   always @ ( * ) begin
-    if (wb.tag == regs[wb.rd].tag /*&& wb.tag*/) begin
+    if (wb.tag == regs[wb.rd].tag && wb.rd) begin
       regs[wb.rd].data = wb.data;
       regs[wb.rd].tag  = `TAG_INVALID;
     end
