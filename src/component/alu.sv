@@ -148,10 +148,10 @@ module alu (
         `ALU_OR:	 alu_calc = src1 | src2;
         `ALU_NOR:	 alu_calc = ~(src1 | src2);
         `ALU_XOR:	 alu_calc = src1 ^ src2;
-        `ALU_SLL:	 alu_calc = src1 << src2[4:0];
-        `ALU_SRL:	 alu_calc = src1 >> src2[4:0];
+        `ALU_SLL:	 alu_calc = src1 << src2;
+        `ALU_SRL:	 alu_calc = src1 >> src2;
+        `ALU_SRA:	 alu_calc = $signed(src1) >>> src2;
         // TODO: src1 <=> src2
-        `ALU_SRA:	 alu_calc = $signed(src2) >>> src1[4:0];
         `ALU_ROR:	 alu_calc = (src2 >> src1[4:0]) | (src2 << (32-src1[4:0]));
         `ALU_SEQ:	 alu_calc = src1 == src2 ? 32'b1 : 32'b0;
         `ALU_SLT:	 alu_calc = $signed(src1) < $signed(src2) ? 32'b1 : 32'b0;

@@ -138,10 +138,10 @@ module branch_unit (
       case (op)
         `OP_BEQ:  compare = (val[1] == val[2]);
         `OP_BNE:  compare = (val[1] !== val[2]);
-        `OP_BLT:  compare = (val[1] < val[2]);
-        `OP_BGE:  compare = (val[1] > val[2]);
+        `OP_BLT:  compare = ($signed(val[1]) < $signed(val[2]));
+        `OP_BGE:  compare = ($signed(val[1]) >= $signed(val[2]));
         `OP_BLTU: compare = ($unsigned(val[1]) < $unsigned(val[2]));
-        `OP_BGEU: compare = ($unsigned(val[1]) > $unsigned(val[2]));
+        `OP_BGEU: compare = ($unsigned(val[1]) >= $unsigned(val[2]));
         default: compare = 0;
       endcase
     end

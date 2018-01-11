@@ -181,7 +181,7 @@ module rob (
 
   task updata_to_id;
     begin
-      pos.full = (tail == head - 1);
+      pos.full = ((tail == head - 1) || (tail == 7 && head == 0));
       pos.avail_tag = tail;
     end
   endtask

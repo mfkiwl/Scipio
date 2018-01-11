@@ -63,6 +63,7 @@ module id (
     .rst(rst),
     .rst_tag(rst_tag),
 
+    .rob_full(rob_pos.full),
     .rd_tag(rob_pos.avail_tag),
     .wb(wb),
     .in(decoder_reg_file),
@@ -177,6 +178,8 @@ interface decoder_control_inf;
   // TODO: pc related tags
   bit                 pc_en;
   bit                 stall;
+
+  bit R;
 
   bit [`COMMON_WIDTH] offset;
   bit [2:0] width;
